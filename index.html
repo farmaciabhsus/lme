@@ -3,701 +3,677 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LME – Laudo de Solicitação, Avaliação e Autorização de Medicamento(s)</title>
+<title>LME - Laudo de Solicitação, Avaliação e Autorização de Medicamento(s)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:wght@400;600&display=swap');
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --verde: #1a5c2a;
-    --verde-claro: #e8f4ec;
-    --azul-sus: #1a3a6b;
-    --amarelo: #f5c400;
-    --cinza: #555;
-    --cinza-claro: #f0f0f0;
-    --borda: #aaa;
-    --vermelho: #c0392b;
-    --branco: #fff;
-    --fonte-campo: 11px;
-    --fonte-label: 9.5px;
-  }
-
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: 'Source Sans 3', sans-serif;
-    background: #d0d0d0;
-    padding: 20px;
-    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    background: #e8e8e8;
+    color: #000;
   }
 
-  /* ── BARRA DE AÇÕES ── */
-  #toolbar {
-    max-width: 860px;
-    margin: 0 auto 16px;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
+  .page-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 10px;
   }
-  #toolbar h1 {
-    flex: 1;
-    font-family: 'Source Serif 4', serif;
-    font-size: 14px;
-    color: #333;
-    min-width: 200px;
+
+  .orientacoes {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    font-size: 11px;
+    line-height: 1.6;
   }
-  .btn {
-    padding: 9px 20px;
+  .orientacoes strong { color: #856404; }
+
+  .save-btn-wrap {
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .save-btn {
+    background: #0d6efd;
+    color: #fff;
     border: none;
     border-radius: 4px;
-    font-size: 13px;
-    font-family: 'Source Sans 3', sans-serif;
+    padding: 10px 32px;
+    font-size: 14px;
+    font-weight: bold;
     cursor: pointer;
-    font-weight: 600;
-    transition: opacity .15s;
+    letter-spacing: 0.5px;
   }
-  .btn:hover { opacity: .85; }
-  .btn-pdf  { background: var(--verde);    color: #fff; }
-  .btn-limpar { background: #fff; color: var(--vermelho); border: 1.5px solid var(--vermelho); }
+  .save-btn:hover { background: #0b5ed7; }
 
-  /* ── FOLHA A4 ── */
-  #formulario {
-    max-width: 860px;
-    margin: 0 auto;
+  /* ====== FORM CONTAINER ====== */
+  .form-container {
     background: #fff;
-    border: 1px solid #bbb;
-    box-shadow: 0 2px 12px rgba(0,0,0,.18);
-    padding: 14px 18px 18px;
-    font-size: var(--fonte-campo);
-    color: #222;
+    border: 1.5px solid #333;
   }
 
-  /* ── CABEÇALHO ── */
-  .cabecalho {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: start;
-    margin-bottom: 6px;
-    gap: 8px;
+  /* HEADER */
+  .header-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-bottom: 1.5px solid #333;
   }
-  .titulo-sus {
+  .header-table td {
+    vertical-align: middle;
+    padding: 4px 8px;
+  }
+  .header-logo-cell {
+    width: 110px;
     text-align: center;
-    font-size: 10px;
-    color: var(--cinza);
-    line-height: 1.45;
+    border-right: 1.5px solid #333;
   }
-  .titulo-sus strong { font-size: 11px; color: var(--azul-sus); }
-  .logo-sus {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    font-size: 9px;
-    color: var(--cinza);
-  }
-  .logo-sus svg { width: 52px; height: 52px; }
-
-  .titulo-formulario {
-    background: var(--azul-sus);
-    color: #fff;
+  .header-title-cell {
     text-align: center;
-    font-size: 10.5px;
-    font-weight: 700;
-    padding: 5px 8px;
-    letter-spacing: .3px;
-    margin-bottom: 6px;
+    font-size: 11.5px;
+    font-weight: bold;
     line-height: 1.5;
   }
-  .subtitulo {
-    background: var(--cinza-claro);
-    border-left: 3px solid var(--verde);
+  .header-sus-cell {
+    width: 170px;
+    text-align: left;
+    border-left: 1.5px solid #333;
+    font-size: 10px;
+    line-height: 1.5;
+    padding-left: 8px;
+  }
+
+  /* SUS Logo SVG */
+  .sus-logo {
+    width: 80px;
+    height: auto;
+  }
+
+  /* SECTION LABELS */
+  .section-label {
+    background: #d9d9d9;
+    font-weight: bold;
+    font-size: 10.5px;
     padding: 3px 8px;
-    font-size: 9.5px;
-    font-weight: 700;
-    color: var(--azul-sus);
-    margin-bottom: 8px;
-    letter-spacing: .2px;
+    border-bottom: 1px solid #333;
+    text-align: center;
   }
 
-  /* ── GRID DE CAMPOS ── */
-  .linha { display: flex; gap: 6px; margin-bottom: 5px; flex-wrap: wrap; }
-  .campo {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 80px;
+  /* GRID ROWS */
+  .row-grid {
+    display: grid;
+    border-bottom: 1px solid #333;
   }
-  .campo.w2 { flex: 2; }
-  .campo.w3 { flex: 3; }
-  .campo.w4 { flex: 4; }
-  .campo.w5 { flex: 5; }
-  .campo.w-auto { flex: none; width: auto; }
-  .campo.w60 { width: 60px; flex: none; }
-  .campo.w80 { width: 80px; flex: none; }
-  .campo.w100 { width: 100px; flex: none; }
-  .campo.w140 { width: 140px; flex: none; }
-
-  label.campo-label {
-    font-size: var(--fonte-label);
-    color: var(--cinza);
+  .cell {
+    border-right: 1px solid #333;
+    padding: 3px 6px;
+    min-height: 32px;
+  }
+  .cell:last-child { border-right: none; }
+  .cell label {
+    display: block;
+    font-weight: bold;
+    font-size: 10px;
     margin-bottom: 2px;
-    font-weight: 600;
-    white-space: nowrap;
+    color: #000;
   }
-  label.campo-label .obrig { color: var(--vermelho); font-weight: 700; }
-
-  input[type=text], input[type=date], input[type=email],
-  input[type=number], textarea, select {
-    border: 1px solid var(--borda);
-    border-radius: 2px;
-    padding: 3px 5px;
-    font-size: var(--fonte-campo);
-    font-family: 'Source Sans 3', sans-serif;
-    background: #fff;
-    color: #111;
+  .cell label .req { color: #cc0000; }
+  .cell input[type=text],
+  .cell input[type=email],
+  .cell input[type=date],
+  .cell input[type=number],
+  .cell select,
+  .cell textarea {
     width: 100%;
+    border: none;
+    border-bottom: 1px solid #aaa;
     outline: none;
-    transition: border-color .15s;
+    font-size: 11px;
+    font-family: Arial, Helvetica, sans-serif;
+    background: transparent;
+    padding: 1px 2px;
   }
-  input:focus, textarea:focus, select:focus {
-    border-color: var(--verde);
-  }
-  input.obrigatorio:not([value=""]):valid,
-  textarea.obrigatorio:not(:placeholder-shown) {
-    background: #f9fff9;
-  }
-
-  textarea { resize: vertical; min-height: 46px; }
-  input[type=date] { min-width: 110px; }
-
-  /* ── CAMPOS OBRIGATÓRIOS COM BORDA VERMELHA QUANDO VAZIOS ── */
-  input.req:placeholder-shown, select.req:invalid, textarea.req:placeholder-shown {
-    border-color: #e8a0a0;
-    background: #fff8f8;
+  .cell select { cursor: pointer; }
+  .cell textarea {
+    resize: vertical;
+    min-height: 50px;
+    border: 1px solid #aaa;
+    margin-top: 2px;
   }
 
-  /* ── TABELA MEDICAMENTOS ── */
-  .tabela-med { width: 100%; border-collapse: collapse; margin-bottom: 5px; }
-  .tabela-med th {
-    background: var(--azul-sus);
-    color: #fff;
-    font-size: 9px;
+  /* MEDICATIONS TABLE */
+  .med-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5px;
+  }
+  .med-table th {
+    background: #d9d9d9;
+    border: 1px solid #333;
     padding: 3px 4px;
     text-align: center;
-    border: 1px solid #1a3a6b;
-    font-weight: 600;
-  }
-  .tabela-med td {
-    border: 1px solid var(--borda);
-    padding: 2px 3px;
-  }
-  .tabela-med td:first-child { width: 22px; text-align: center; font-size: 9px; color: var(--cinza); background: #f5f5f5; }
-  .tabela-med td input, .tabela-med td select {
-    border: none;
-    background: transparent;
-    padding: 2px 3px;
+    font-weight: bold;
     font-size: 10px;
-    width: 100%;
   }
-  .tabela-med td input:focus, .tabela-med td select:focus {
-    background: #f0f8ff;
-    outline: 1px solid var(--verde);
+  .med-table td {
+    border: 1px solid #aaa;
+    padding: 2px 3px;
+    vertical-align: middle;
   }
-  .tabela-med .col-qtd { width: 56px; text-align: center; }
-  .tabela-med td .col-qtd-input { text-align: center; }
-
-  /* ── RADIO / CHECKBOX ── */
-  .grupo-opcoes { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; padding: 4px 0; }
-  .opcao { display: flex; align-items: center; gap: 4px; font-size: 10.5px; cursor: pointer; }
-  .opcao input[type=radio], .opcao input[type=checkbox] { width: 13px; height: 13px; cursor: pointer; accent-color: var(--verde); }
-  .opcao-label { color: #222; }
-  .opcao-extra { display: flex; align-items: center; gap: 4px; }
-  .opcao-extra input[type=text] { width: 160px; font-size: 10px; }
-
-  /* ── CID-10 ── */
-  .cid-linha { display: flex; gap: 6px; align-items: flex-end; margin-bottom: 5px; }
-  .cid-codigo { width: 80px; flex: none; }
-  .cid-desc   { flex: 1; }
-  .btn-add-cid {
-    background: var(--verde);
-    color: #fff;
-    border: none;
-    padding: 3px 8px;
-    border-radius: 2px;
-    font-size: 10px;
-    cursor: pointer;
-    white-space: nowrap;
-    height: 26px;
-  }
-  #cids-container { display: flex; flex-direction: column; gap: 4px; }
-
-  /* ── SEÇÃO AVALIAÇÃO (leve) ── */
-  .secao-farmaceutica {
-    background: #f8f8f8;
-    border: 1px dashed #ccc;
-    padding: 8px;
-    border-radius: 3px;
-    margin-top: 10px;
-  }
-
-  /* ── ASSINATURA ── */
-  .assinatura-box {
-    border: 1px solid var(--borda);
-    height: 60px;
-    width: 100%;
-    background: #fafafa;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    font-size: 9px;
-    color: #aaa;
-    padding-bottom: 4px;
-  }
-
-  /* ── SEPARADORES ── */
-  hr { border: none; border-top: 1.5px solid var(--azul-sus); margin: 8px 0 6px; }
-  .divisor-leve { border: none; border-top: 1px solid #ddd; margin: 6px 0; }
-
-  /* ── NOTA RODAPÉ ── */
-  .rodape {
-    font-size: 9px;
-    color: var(--cinza);
-    margin-top: 10px;
+  .med-table td:first-child {
     text-align: center;
-    border-top: 1px solid #ddd;
-    padding-top: 5px;
+    font-weight: bold;
+    width: 22px;
+    background: #f5f5f5;
+    border-left: 1px solid #333;
   }
-  .obrig-nota { color: var(--vermelho); font-weight: 700; }
+  .med-table td:last-child { border-right: 1px solid #333; }
+  .med-table tr:last-child td { border-bottom: 1px solid #333; }
+  .med-table select, .med-table input[type=number] {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 10.5px;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  .med-table .qty-cell { text-align: center; width: 54px; }
+  .med-table input[type=number] { text-align: center; width: 46px; }
 
-  /* ── ORIENTAÇÕES ── */
-  .orientacoes {
-    background: #fffbea;
-    border: 1px solid var(--amarelo);
-    border-left: 4px solid var(--amarelo);
-    padding: 7px 10px;
+  /* CID + DIAGNOSIS ROW */
+  .cid-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    border-bottom: 1px solid #333;
+  }
+
+  /* CHECKBOX ITEMS */
+  .checkbox-group { display: flex; flex-direction: column; gap: 4px; margin-top: 2px; }
+  .checkbox-group label { font-weight: normal; font-size: 10.5px; display: flex; align-items: center; gap: 5px; color: #000; }
+  .inline-check { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 2px; }
+  .inline-check label { font-weight: normal; font-size: 10.5px; display: flex; align-items: center; gap: 4px; color: #000; }
+  .inline-check input[type=text] { width: 140px; border: none; border-bottom: 1px solid #aaa; outline: none; font-size: 10.5px; }
+
+  /* SECTION TITLE ROW */
+  .title-row {
+    border-bottom: 1px solid #333;
+    padding: 4px 8px;
+    font-weight: bold;
+    font-size: 11px;
+    text-align: center;
+    background: #fff;
+  }
+  .title-row .sub { font-weight: normal; font-size: 10px; }
+
+  /* SIGNATURE AREA */
+  .sig-box {
+    border: 1px solid #aaa;
+    min-height: 60px;
+    margin-top: 3px;
+  }
+
+  /* FILLED BY ROW */
+  .filled-by-row {
+    border-bottom: 1px solid #333;
+    padding: 4px 8px;
+    font-size: 10.5px;
+  }
+  .filled-by-row .fb-line { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
+  .filled-by-row label { font-weight: normal; display: flex; align-items: center; gap: 4px; }
+  .filled-by-row strong { font-weight: bold; font-size: 10.5px; }
+
+  /* LAST ROW GRID */
+  .last-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid #333;
+  }
+  .last-grid .cell { min-height: 38px; }
+
+  /* REQUIRED note */
+  .req-note {
+    background: #fff;
+    border-top: 1.5px solid #333;
+    padding: 3px 8px;
     font-size: 10px;
-    color: #555;
-    margin-bottom: 10px;
-    border-radius: 2px;
-    line-height: 1.55;
+    font-weight: bold;
   }
-  .orientacoes strong { color: #333; }
 
-  /* ── PRINT/PDF: esconde toolbar ── */
+  /* VALIDATION */
+  .invalid { border-bottom: 1.5px solid #cc0000 !important; background: #fff5f5 !important; }
+  .error-msg { color: #cc0000; font-size: 9px; display: none; }
+  .show-error { display: block; }
+
+  /* ====== PRINT / PDF STYLES ====== */
   @media print {
-    body { background: #fff; padding: 0; }
-    #toolbar { display: none; }
-    #formulario { box-shadow: none; border: none; max-width: 100%; padding: 10px; }
+    body { background: #fff; }
+    .page-wrapper { padding: 0; max-width: 100%; }
+    .orientacoes, .save-btn-wrap { display: none !important; }
+    .form-container { border: 1.5px solid #333; }
+    select { -webkit-appearance: none; appearance: none; }
   }
-
-  /* campo numero pequeno */
-  .num-item { text-align: center; background: var(--cinza-claro); padding: 3px 5px; border: 1px solid var(--borda); border-radius: 2px; font-size: 10px; color: var(--cinza); min-width: 28px; }
-  .item-label { font-size: 10px; font-weight: 700; color: var(--azul-sus); margin-bottom: 2px; }
 </style>
 </head>
 <body>
-
-<!-- BARRA DE AÇÕES -->
-<div id="toolbar">
-  <h1>📋 LME – Laudo de Solicitação e Autorização de Medicamento(s)</h1>
-  <button class="btn btn-limpar" onclick="limparFormulario()">🗑 Limpar Formulário</button>
-  <button class="btn btn-pdf" onclick="gerarPDF()">⬇ Salvar como PDF</button>
-</div>
-
-<!-- FORMULÁRIO -->
-<div id="formulario">
+<div class="page-wrapper">
 
   <!-- ORIENTAÇÕES -->
   <div class="orientacoes">
-    <strong>Orientações:</strong> Preencha todos os campos obrigatórios, sinalizados com <span style="color:var(--vermelho);font-weight:700;">asterisco (*)</span>.
-    Este formulário <strong>não salva informações</strong>. Após o preenchimento e revisão, salve em PDF — podendo assinar o impresso, ou digitalmente com Certificado Digital.
-    <em>Conta Gov.br não é aceita.</em>
+    <strong>Orientações:</strong><br>
+    Preencha todos os campos obrigatórios, sinalizados com asterisco e em vermelho.<br>
+    Este formulário <strong>não salva informações</strong>.<br>
+    Após o preenchimento e revisão, salve em PDF, podendo assinar o impresso, ou digitalmente com Certificado Digital. <em>Conta Gov.br não é aceita.</em>
   </div>
 
-  <!-- CABEÇALHO INSTITUCIONAL -->
-  <div class="cabecalho">
-    <div class="titulo-sus">
-      <div>Sistema Único de Saúde &nbsp;|&nbsp; Ministério da Saúde &nbsp;|&nbsp; Secretaria de Estado da Saúde</div>
-    </div>
-    <div class="logo-sus">
-      <!-- SUS symbol (simplified SVG) -->
-      <svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="26" cy="26" r="24" fill="#1a5c2a"/>
-        <text x="26" y="32" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="sans-serif">SUS</text>
-      </svg>
-    </div>
+  <!-- SALVAR PDF -->
+  <div class="save-btn-wrap">
+    <button class="save-btn" onclick="gerarPDF()">💾 Salvar como PDF</button>
   </div>
 
-  <div class="titulo-formulario">
-    COMPONENTE ESPECIALIZADO DA ASSISTÊNCIA FARMACÊUTICA<br>
-    LAUDO DE SOLICITAÇÃO, AVALIAÇÃO E AUTORIZAÇÃO DE MEDICAMENTO(S)<br>
-    SOLICITAÇÃO DE MEDICAMENTO(S)
-  </div>
+  <!-- FORM -->
+  <div class="form-container" id="lme-form">
 
-  <!-- ══ SEÇÃO MÉDICO ══ -->
-  <div class="subtitulo">CAMPOS DE PREENCHIMENTO EXCLUSIVO PELO MÉDICO SOLICITANTE</div>
-
-  <!-- 1 e 2 -->
-  <div class="linha">
-    <div class="campo w100">
-      <label class="campo-label">1. Número do CNES <span class="obrig">*</span></label>
-      <input type="text" class="req" id="cnes" placeholder="0000000" maxlength="7">
-    </div>
-    <div class="campo w5">
-      <label class="campo-label">2. Nome do Estabelecimento de Saúde Solicitante</label>
-      <input type="text" id="estabelecimento" placeholder="Nome completo do estabelecimento">
-    </div>
-  </div>
-
-  <!-- 3.1, 3.2, 5, 6 -->
-  <div class="linha">
-    <div class="campo w5">
-      <label class="campo-label">3.1 Nome civil completo do Paciente <span class="obrig">*</span></label>
-      <input type="text" class="req" id="nome_civil" placeholder="Nome civil completo">
-    </div>
-    <div class="campo w60">
-      <label class="campo-label">5. Peso (Kg) <span class="obrig">*</span></label>
-      <input type="number" class="req" id="peso" placeholder="Ex: 70" min="1" max="300" step="0.1">
-    </div>
-  </div>
-  <div class="linha">
-    <div class="campo w5">
-      <label class="campo-label">3.2 Nome social do Paciente</label>
-      <input type="text" id="nome_social" placeholder="Nome social (se aplicável)">
-    </div>
-    <div class="campo w60">
-      <label class="campo-label">6. Altura (cm) <span class="obrig">*</span></label>
-      <input type="number" class="req" id="altura" placeholder="Ex: 170" min="30" max="250">
-    </div>
-  </div>
-
-  <!-- 4 Nome da mãe -->
-  <div class="linha">
-    <div class="campo">
-      <label class="campo-label">4. Nome da Mãe do Paciente <span class="obrig">*</span></label>
-      <input type="text" class="req" id="nome_mae" placeholder="Nome completo da mãe">
-    </div>
-  </div>
-
-  <div class="divisor-leve"></div>
-
-  <!-- 7. MEDICAMENTOS -->
-  <div class="item-label">7. Medicamentos <span class="obrig" style="font-weight:700;color:var(--vermelho)">*</span> &nbsp;&nbsp; 8. Quantidade Solicitada <span class="obrig" style="font-weight:700;color:var(--vermelho)">*</span></div>
-  <table class="tabela-med">
-    <thead>
+    <!-- CABEÇALHO -->
+    <table class="header-table">
       <tr>
-        <th>#</th>
-        <th style="text-align:left;width:38%">Medicamento</th>
-        <th class="col-qtd">1° mês</th>
-        <th class="col-qtd">2° mês</th>
-        <th class="col-qtd">3° mês</th>
-        <th class="col-qtd">4° mês</th>
-        <th class="col-qtd">5° mês</th>
-        <th class="col-qtd">6° mês</th>
+        <td class="header-logo-cell">
+          <!-- Logo SUS SVG -->
+          <svg class="sus-logo" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+            <rect width="120" height="80" fill="#009B3A"/>
+            <!-- SUS text white -->
+            <text x="60" y="30" text-anchor="middle" fill="white" font-family="Arial" font-weight="bold" font-size="22">SUS</text>
+            <!-- "Sistema Único de Saúde" -->
+            <text x="60" y="48" text-anchor="middle" fill="white" font-family="Arial" font-size="7.5">Sistema Único</text>
+            <text x="60" y="58" text-anchor="middle" fill="white" font-family="Arial" font-size="7.5">de Saúde</text>
+            <!-- Cross/medical symbol -->
+            <rect x="8" y="62" width="16" height="5" fill="white" rx="1"/>
+            <rect x="13" y="57" width="5" height="15" fill="white" rx="1"/>
+          </svg>
+        </td>
+        <td class="header-title-cell">
+          <div style="font-size:12px; font-weight:bold;">COMPONENTE ESPECIALIZADO DA ASSISTÊNCIA FARMACÊUTICA</div>
+          <div style="font-size:11.5px; font-weight:bold;">LAUDO DE SOLICITAÇÃO, AVALIAÇÃO E AUTORIZAÇÃO DE MEDICAMENTO(S)</div>
+          <div style="font-size:11px; font-weight:normal;">SOLICITAÇÃO DE MEDICAMENTO(S)</div>
+        </td>
+        <td class="header-sus-cell">
+          Sistema Único de Saúde<br>
+          Ministério da Saúde<br>
+          Secretaria de Estado da Saúde
+        </td>
       </tr>
-    </thead>
-    <tbody id="tabela-med-body">
-      <!-- gerado pelo JS -->
-    </tbody>
-  </table>
+    </table>
 
-  <div class="divisor-leve"></div>
+    <!-- MÉDICO SOLICITANTE LABEL -->
+    <div class="section-label">CAMPOS DE PREENCHIMENTO EXCLUSIVO PELO MÉDICO SOLICITANTE</div>
 
-  <!-- 9 e 10 CID-10 -->
-  <div class="item-label">9. CID-10 <span class="obrig" style="color:var(--vermelho)">*</span> &nbsp;&nbsp;&nbsp; 10. Diagnóstico</div>
-  <div id="cids-container">
-    <!-- gerado pelo JS -->
-  </div>
-  <div style="margin-bottom:6px">
-    <button class="btn-add-cid" onclick="adicionarCID()">+ Adicionar CID-10</button>
-  </div>
-
-  <div class="divisor-leve"></div>
-
-  <!-- 11. Anamnese -->
-  <div class="campo" style="margin-bottom:6px">
-    <label class="campo-label">11. Anamnese <span class="obrig">*</span></label>
-    <textarea class="req" id="anamnese" rows="5" placeholder="Descreva a anamnese do paciente (história clínica, sintomas, exames, evolução...)"></textarea>
-  </div>
-
-  <!-- 12. Tratamento prévio -->
-  <div style="margin-bottom:6px">
-    <label class="campo-label">12. Paciente realizou tratamento prévio ou está em tratamento na doença? <span class="obrig">*</span></label>
-    <div class="grupo-opcoes">
-      <label class="opcao">
-        <input type="radio" name="trat_previo" value="nao"> <span class="opcao-label">NÃO</span>
-      </label>
-      <label class="opcao">
-        <input type="radio" name="trat_previo" value="sim"> <span class="opcao-label">SIM. Relatar:</span>
-      </label>
-    </div>
-    <div id="trat_previo_detalhe" style="display:none;margin-top:3px">
-      <textarea id="trat_previo_texto" rows="3" placeholder="Descreva o tratamento prévio ou atual..."></textarea>
-    </div>
-  </div>
-
-  <!-- 13. Capacidade -->
-  <div style="margin-bottom:6px">
-    <label class="campo-label">13. Atestado de Capacidade <span class="obrig">*</span></label>
-    <div style="font-size:9.5px;color:#555;margin-bottom:4px;line-height:1.4">
-      A solicitação do medicamento deverá ser realizada pelo paciente. Entretanto, fica dispensada a obrigatoriedade da presença física do paciente considerado incapaz de acordo com os artigos 3° e 4° do Código Civil. O paciente é considerado incapaz?
-    </div>
-    <div class="grupo-opcoes">
-      <label class="opcao">
-        <input type="radio" name="capacidade" value="nao"> <span class="opcao-label">NÃO</span>
-      </label>
-      <label class="opcao">
-        <input type="radio" name="capacidade" value="sim"> <span class="opcao-label">SIM. Indicar o nome do responsável pelo paciente:</span>
-      </label>
-    </div>
-    <div id="responsavel_campo" style="display:none;margin-top:3px">
-      <div class="campo">
-        <label class="campo-label">Nome do responsável</label>
-        <input type="text" id="nome_responsavel" placeholder="Nome completo do responsável legal">
+    <!-- CAMPOS 1 e 2 -->
+    <div class="row-grid" style="grid-template-columns: 220px 1fr;">
+      <div class="cell">
+        <label>1. Número do CNES <span class="req">*</span></label>
+        <input type="text" id="cnes" maxlength="7" placeholder="0000000" oninput="this.value=this.value.replace(/\D/g,'')">
+      </div>
+      <div class="cell">
+        <label>2. Nome do Estabelecimento de Saúde Solicitante</label>
+        <input type="text" id="estabelecimento">
       </div>
     </div>
-  </div>
 
-  <div class="divisor-leve"></div>
-
-  <!-- 14, 15, 16, 17 -->
-  <div class="linha">
-    <div class="campo w4">
-      <label class="campo-label">14. Nome do médico solicitante <span class="obrig">*</span></label>
-      <input type="text" class="req" id="nome_medico" placeholder="Nome completo do médico">
-    </div>
-    <div class="campo w80">
-      <label class="campo-label">16. Data da Solicitação <span class="obrig">*</span></label>
-      <input type="date" class="req" id="data_solicitacao">
-    </div>
-  </div>
-  <div class="linha">
-    <div class="campo w4">
-      <label class="campo-label">15. N° do Cartão Nacional de Saúde (CNS) do médico solicitante <span class="obrig">*</span></label>
-      <input type="text" class="req" id="cns_medico" placeholder="000 0000 0000 0000" maxlength="18">
-    </div>
-    <div class="campo w2">
-      <label class="campo-label">17. Assinatura e carimbo do médico <span class="obrig">*</span></label>
-      <div class="assinatura-box">assinatura / carimbo</div>
-    </div>
-  </div>
-
-  <hr>
-
-  <!-- ══ SEÇÃO PACIENTE/RESPONSÁVEL ══ -->
-  <div class="subtitulo" style="background:var(--verde-claro);border-left-color:var(--azul-sus)">CAMPOS ABAIXO PREENCHIDOS POR</div>
-
-  <!-- 18. Quem preenche -->
-  <div style="margin-bottom:6px">
-    <label class="campo-label">18. Responsável pelo preenchimento desta seção <span class="obrig">*</span></label>
-    <div class="grupo-opcoes">
-      <label class="opcao"><input type="radio" name="quem_preenche" value="paciente"> <span class="opcao-label">Paciente</span></label>
-      <label class="opcao"><input type="radio" name="quem_preenche" value="mae"> <span class="opcao-label">Mãe do Paciente</span></label>
-      <label class="opcao"><input type="radio" name="quem_preenche" value="responsavel"> <span class="opcao-label">Responsável (Descrito no item 13)</span></label>
-      <label class="opcao"><input type="radio" name="quem_preenche" value="medico"> <span class="opcao-label">Médico Solicitante</span></label>
-    </div>
-    <div class="grupo-opcoes" style="margin-top:4px">
-      <label class="opcao">
-        <input type="radio" name="quem_preenche" value="outro"> <span class="opcao-label">Outro, informar nome:</span>
-      </label>
-      <div class="opcao-extra">
-        <input type="text" id="outro_nome" placeholder="Nome" style="width:160px">
-        <span style="font-size:10px;color:#555">e CPF:</span>
-        <input type="text" id="outro_cpf" placeholder="000.000.000-00" style="width:120px">
+    <!-- CAMPOS 3.1, 3.2, 5, 6 -->
+    <div class="row-grid" style="grid-template-columns: 1fr 160px;">
+      <div class="cell">
+        <label>3.1 Nome civil completo do Paciente <span class="req">*</span></label>
+        <input type="text" id="nome_civil">
+      </div>
+      <div class="cell">
+        <label>5. Peso do Paciente (Kg) <span class="req">*</span></label>
+        <input type="number" id="peso" min="0" max="300" step="0.1" placeholder="00,0">
       </div>
     </div>
-  </div>
+    <div class="row-grid" style="grid-template-columns: 1fr 160px;">
+      <div class="cell">
+        <label>3.2 Nome social do Paciente</label>
+        <input type="text" id="nome_social">
+      </div>
+      <div class="cell">
+        <label>6. Altura do Paciente (cm) <span class="req">*</span></label>
+        <input type="number" id="altura" min="0" max="300" step="1" placeholder="000">
+      </div>
+    </div>
 
-  <!-- 19. Raça/Cor + 20. Telefones -->
-  <div class="linha" style="align-items:flex-start">
-    <div class="campo w3">
-      <label class="campo-label">19. Raça/Cor/Etnia informado pelo Paciente/Responsável <span class="obrig">*</span></label>
-      <div class="grupo-opcoes" style="flex-direction:column;gap:4px;align-items:flex-start;margin-top:2px">
-        <div style="display:flex;gap:12px;flex-wrap:wrap">
-          <label class="opcao"><input type="radio" name="raca" value="branca"> <span class="opcao-label">Branca</span></label>
-          <label class="opcao"><input type="radio" name="raca" value="preta"> <span class="opcao-label">Preta</span></label>
-          <label class="opcao"><input type="radio" name="raca" value="amarela"> <span class="opcao-label">Amarela</span></label>
-          <label class="opcao"><input type="radio" name="raca" value="parda"> <span class="opcao-label">Parda</span></label>
+    <!-- CAMPO 4 -->
+    <div class="row-grid" style="grid-template-columns: 1fr;">
+      <div class="cell">
+        <label>4. Nome da Mãe do Paciente <span class="req">*</span></label>
+        <input type="text" id="nome_mae">
+      </div>
+    </div>
+
+    <!-- CAMPO 7 - MEDICAMENTOS TABLE -->
+    <table class="med-table">
+      <thead>
+        <tr>
+          <th colspan="2" style="text-align:center;">7. Medicamentos <span style="color:#cc0000;">*</span></th>
+          <th colspan="6" style="text-align:center;">8. Quantidade Solicitada <span style="color:#cc0000;">*</span></th>
+        </tr>
+        <tr>
+          <th style="width:22px;"></th>
+          <th></th>
+          <th class="qty-cell">1° mês</th>
+          <th class="qty-cell">2° mês</th>
+          <th class="qty-cell">3° mês</th>
+          <th class="qty-cell">4° mês</th>
+          <th class="qty-cell">5° mês</th>
+          <th class="qty-cell">6° mês</th>
+        </tr>
+      </thead>
+      <tbody id="med-tbody">
+        <!-- Generated by JS -->
+      </tbody>
+    </table>
+
+    <!-- CAMPO 9 CID + 10 DIAGNÓSTICO -->
+    <div class="cid-row">
+      <div class="cell" style="border-right:1px solid #333;">
+        <label>9. CID-10 <span class="req">*</span></label>
+        <select id="cid_select" onchange="updateDiagnostico()">
+          <option value="">-- Selecione o medicamento primeiro --</option>
+        </select>
+      </div>
+      <div class="cell">
+        <label>10. Diagnóstico</label>
+        <input type="text" id="diagnostico" readonly style="background:#f5f5f5; cursor:default;">
+      </div>
+    </div>
+
+    <!-- CAMPO 11 ANAMNESE -->
+    <div style="border-bottom:1px solid #333; padding:4px 6px;">
+      <label style="font-weight:bold; font-size:10px;">11. Anamnese <span class="req">*</span></label>
+      <textarea id="anamnese" style="width:100%; min-height:70px; border:1px solid #aaa; font-size:11px; font-family:Arial; resize:vertical; padding:3px;" placeholder="Descreva a anamnese do paciente..."></textarea>
+    </div>
+
+    <!-- CAMPO 12 -->
+    <div style="border-bottom:1px solid #333; padding:5px 8px;">
+      <div style="font-weight:bold; font-size:10.5px; margin-bottom:4px;">12. Paciente realizou tratamento prévio ou está em tratamento na doença? <span class="req">*</span></div>
+      <div class="inline-check">
+        <label><input type="radio" name="tratamento_previo" value="NAO"> NÃO</label>
+        <label><input type="radio" name="tratamento_previo" value="SIM"> SIM. Relatar:</label>
+        <input type="text" id="tratamento_detalhe" style="width:300px; border:none; border-bottom:1px solid #aaa; outline:none; font-size:10.5px;" placeholder="Descreva o tratamento prévio...">
+      </div>
+    </div>
+
+    <!-- CAMPO 13 ATESTADO DE CAPACIDADE -->
+    <div style="border-bottom:1px solid #333; padding:5px 8px;">
+      <div style="font-weight:bold; font-size:11px; text-align:center; margin-bottom:4px;">13. Atestado de Capacidade <span class="req">*</span></div>
+      <div style="font-size:10px; text-align:center; margin-bottom:5px;">
+        A solicitação do medicamento deverá ser realizada pelo paciente. Entretanto, fica dispensada a obrigatoriedade da presença física do
+        paciente considerado incapaz de acordo com os artigos 3° e 4° do Código Civil. O paciente é considerado incapaz?
+      </div>
+      <div class="inline-check">
+        <label><input type="radio" name="incapaz" value="NAO" onchange="toggleResponsavel()"> NÃO</label>
+        <label><input type="radio" name="incapaz" value="SIM" onchange="toggleResponsavel()"> SIM. Indicar o nome do responsável pelo paciente, o qual poderá realizar a solicitação do medicamento</label>
+        <span style="font-size:10px; color:#555;">Nome do Responsável:</span>
+        <input type="text" id="nome_responsavel" style="width:220px; border:none; border-bottom:1px solid #aaa; outline:none; font-size:10.5px;" disabled placeholder="Nome do Responsável">
+      </div>
+    </div>
+
+    <!-- CAMPOS 14, 15, 16, 17 -->
+    <div class="row-grid" style="grid-template-columns: 1fr 200px;">
+      <div class="cell">
+        <label>14. Nome do médico solicitante <span class="req">*</span></label>
+        <input type="text" id="nome_medico">
+      </div>
+      <div class="cell" rowspan="2" style="border-right:none;">
+        <label>17. Assinatura e carimbo do médico <span class="req">*</span></label>
+        <div class="sig-box"></div>
+      </div>
+    </div>
+    <div class="row-grid" style="grid-template-columns: 200px 1fr 200px; border-bottom:1.5px solid #333;">
+      <div class="cell">
+        <label>15. N° do CNS do médico solicitante <span class="req">*</span></label>
+        <input type="text" id="cns_medico" maxlength="15" oninput="this.value=this.value.replace(/\D/g,'')">
+      </div>
+      <div class="cell">
+        <label>16. Data da Solicitação <span class="req">*</span></label>
+        <input type="date" id="data_solicitacao">
+      </div>
+      <div class="cell" style="border-right:none; visibility:hidden;"></div>
+    </div>
+
+    <!-- CAMPO 18 PREENCHIDO POR -->
+    <div class="filled-by-row">
+      <div class="fb-line">
+        <strong>18. CAMPOS ABAIXO PREENCHIDOS POR <span class="req">*</span>:</strong>
+        <label><input type="radio" name="preenchido_por" value="Paciente"> Paciente</label>
+        <label><input type="radio" name="preenchido_por" value="Mae"> Mãe do Paciente</label>
+        <label><input type="radio" name="preenchido_por" value="Responsavel"> Responsável (Descrito no item 13)</label>
+        <label><input type="radio" name="preenchido_por" value="Medico"> Médico Solicitante</label>
+      </div>
+      <div class="fb-line">
+        <label>☐ Outro, informar nome:</label>
+        <input type="text" id="outro_nome" style="width:200px; border:none; border-bottom:1px solid #aaa; outline:none; font-size:10.5px;">
+        <span>e CPF:</span>
+        <input type="text" id="outro_cpf" style="width:140px; border:none; border-bottom:1px solid #aaa; outline:none; font-size:10.5px;" maxlength="14" oninput="mascaraCPF(this)">
+      </div>
+    </div>
+
+    <!-- CAMPO 19, 20 -->
+    <div class="row-grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="cell">
+        <label>19. Raça/Cor/Etnia informado pelo Paciente Responsável <span class="req">*</span></label>
+        <div class="checkbox-group" style="flex-direction:row; flex-wrap:wrap; gap:8px;">
+          <label><input type="radio" name="raca" value="Branca"> Branca</label>
+          <label><input type="radio" name="raca" value="Amarela"> Amarela</label>
+          <label><input type="radio" name="raca" value="Preta"> Preta</label>
+          <label><input type="radio" name="raca" value="Parda"> Parda</label>
+          <label style="display:flex;align-items:center;gap:4px;"><input type="radio" name="raca" value="Indigena"> Indígena. Informar Etnia: <input type="text" id="etnia" style="width:100px;border:none;border-bottom:1px solid #aaa;outline:none;font-size:10px;"></label>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <label class="opcao"><input type="radio" name="raca" value="indigena"> <span class="opcao-label">Indígena. Informar etnia:</span></label>
-          <input type="text" id="etnia" placeholder="Etnia" style="width:140px;font-size:10px">
+      </div>
+      <div class="cell" style="border-right:none;">
+        <label>20. Telefone(s) para contato do paciente</label>
+        <div style="display:flex; flex-direction:column; gap:4px; margin-top:2px;">
+          <input type="text" id="tel1" placeholder="( )" oninput="mascaraTel(this)" maxlength="15">
+          <input type="text" id="tel2" placeholder="( )" oninput="mascaraTel(this)" maxlength="15">
         </div>
       </div>
     </div>
-    <div class="campo w2">
-      <label class="campo-label">20. Telefone(s) para contato do paciente</label>
-      <div class="linha" style="margin-bottom:3px">
-        <div class="campo w60"><input type="text" placeholder="DDD" maxlength="4" style="text-align:center"></div>
-        <div class="campo"><input type="text" id="tel1" placeholder="Telefone 1"></div>
-      </div>
-      <div class="linha">
-        <div class="campo w60"><input type="text" placeholder="DDD" maxlength="4" style="text-align:center"></div>
-        <div class="campo"><input type="text" id="tel2" placeholder="Telefone 2"></div>
-      </div>
-    </div>
-  </div>
 
-  <!-- 21, 22, 23 -->
-  <div class="linha">
-    <div class="campo w3">
-      <label class="campo-label">21. Número do documento do Paciente</label>
-      <div class="grupo-opcoes" style="margin-bottom:3px">
-        <label class="opcao"><input type="radio" name="tipo_doc" value="cpf" id="radio_cpf"> <span class="opcao-label">CPF</span></label>
-        <label class="opcao"><input type="radio" name="tipo_doc" value="cns" id="radio_cns"> <span class="opcao-label">CNS</span></label>
+    <!-- CAMPOS 21, 22, 23 -->
+    <div class="row-grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="cell">
+        <label>21. Número do documento do Paciente</label>
+        <div class="inline-check" style="margin-top:4px;">
+          <label><input type="radio" name="doc_tipo" value="CPF" onchange="updateDocMask()"> CPF</label>
+          <label><input type="radio" name="doc_tipo" value="CNS" onchange="updateDocMask()"> CNS</label>
+        </div>
+        <input type="text" id="doc_numero" placeholder="Número do documento" maxlength="18" oninput="docInput(this)" style="margin-top:3px;">
       </div>
-      <input type="text" id="doc_paciente" placeholder="Número do documento">
+      <div class="cell" style="border-right:none;">
+        <label>23. Assinatura do responsável pelo preenchimento <span class="req">*</span></label>
+        <div class="sig-box"></div>
+      </div>
     </div>
-    <div class="campo w2">
-      <label class="campo-label">22. Correio Eletrônico do paciente</label>
-      <input type="email" id="email_paciente" placeholder="email@exemplo.com.br">
-    </div>
-    <div class="campo w2">
-      <label class="campo-label">23. Assinatura do responsável pelo preenchimento <span class="obrig">*</span></label>
-      <div class="assinatura-box">assinatura</div>
-    </div>
-  </div>
 
-  <!-- RODAPÉ -->
-  <p class="rodape"><span class="obrig-nota">*</span> CAMPOS DE PREENCHIMENTO OBRIGATÓRIO &nbsp;|&nbsp; Este formulário não armazena dados. As informações preenchidas ficam somente no seu dispositivo.</p>
-</div><!-- fim #formulario -->
+    <div style="border-bottom:1px solid #333; padding:4px 8px;">
+      <label style="font-weight:bold; font-size:10px;">22. Correio Eletrônico do paciente</label>
+      <input type="email" id="email" style="width:100%; border:none; border-bottom:1px solid #aaa; outline:none; font-size:11px;" placeholder="exemplo@email.com">
+    </div>
 
-<!-- ════════════════════════════ SCRIPTS ════════════════════════════ -->
+    <!-- NOTA RODAPÉ -->
+    <div class="req-note">*CAMPOS DE PREENCHIMENTO OBRIGATÓRIO</div>
+  </div><!-- /form-container -->
+
+</div><!-- /page-wrapper -->
+
 <script>
-// ── LISTA DE MEDICAMENTOS ──
-const medicamentos = [
-"ABATACEPTE 125 mg/mL (SERINGA PREENCHIDA)","ABATACEPTE 250 mg (FRASCO AMPOLA)",
-"ÁCIDO URSODESOXICÓLICO","ÁCIDO ZOLEDRÔNICO","ACITRETINA","AMANTADINA","AMBRISENTANA",
-"ATORVASTATINA","BARICITINIBE","BEZAFIBRATO","BIOTINA","BOSENTANA","BUDESONIDA",
-"CABERGOLINA","CALCIPOTRIOL","CALCITONINA","CALCITRIOL","CERTOLIZUMABE PEGOL",
-"CICLOFOSFAMIDA","CICLOSPORINA","CINACALCETE","CIPROFIBRATO","CLADRIBINA","CLOBAZAM",
-"CLOBETASOL","CLOPIDOGREL","CLOROQUINA","CLOZAPINA","CODEÍNA","COLISTIMETATO",
-"DAPAGLIFLOZINA","DEFERASIROX","DEFERIPRONA","DESFERROXAMINA","DESMOPRESSINA",
-"DONEPEZILA","ECULIZUMABE","ELEXACAFTOR+TEZACAFTOR+IVACAFTOR","ELTROMBOPAUGE",
-"ENOXAPARINA","ENTACAPONA","ETANERCEPTE","ETOSSUXÍMIDA","EVEROLIMO","FENOFIBRATO",
-"FENOTEROL","FILGRASTIM","FINGOLIMODE","FLUDROCORTISONA","FLUTICASONA+UMECLIDÍNIO+VILANTEROL",
-"FORMOTEROL","FORMOTEROL+BUDESONIDA","FUMARATO DE DIMETILA","GABAPENTINA","GALANTAMINA",
-"GALSULFASE","GANCICLOVIR","GENFIBROZILA","GLATIRÂMER","GLICOPIRRÔNIO","GOLIMUMABE",
-"GOSSERRELINA","HIDROXICLOROQUINA","HIDROXIUREIA","IDURSULFASE","ILOPROSTÁ","IMIGLUCERASE",
-"IMUNOGLOBULINA HUMANA","INFLIXIMABE","INSULINA ANÁLOGA","ISOTRETINOÍNA","IVACAFTOR",
-"LAMOTRIGINA","LANREOTIDA","LARONIDASE","LEFLUNOMIDA","LEUPRORRELINA","LEVETIRACETAM",
-"LINEZOLIDA","MEMANTINA","MEPOLIZUMABE","MESALAZINA","METADONA","METOTREXATO",
-"MICOFENOLATO DE SÓDIO","MICOFENOLATO DE MOFETILA","MIGLUSTATE","MINOCICLINA","MORFINA",
-"NAPROXENO","NATALIZUMABE","NINTEDANIBE","OLANZAPINA","OMALUZUMABE","PANCREEATINA",
-"PARICALCITOL","PENICILAMINA","PIRFENIDONA","PIRIDOSTIGMINA","PRAMIPEXOL","PRIMIDONA",
-"QUETIAPINA","RALOXIFENO","RASAGILINA","RILUZOL","RISANKIZUMABE","RISDIPLAM","RISEDRONATO",
-"RISPERIDONA","RITUXIMABE","RIVASTIGMINA","ROMOSOZUMABE","SACARATO DE HIDRÓXIDO FÉRRICO",
-"SACUBITRIL VALSARTANA","SALMETEROL + FLUTICASONA","SAPROPTERINA","SECUQUINUMABE",
-"SEVELÂMER","SILDENAFILA","SIROLIMO","SOMATROPINA","SULFASSALAZINA","TACROLIMO",
-"TAFAMIDIS","TERIFLUNOMIDA","TIOTRÓPIO","TOBRAMICINA","TOCILIZUMABE","TOFACITINIBE",
-"TOPIRAMATO","TOXINA BOTULÍNICA TIPO A","UMECLIDÍNIO","UMECLIDÍNIO + VILANTEROL",
-"UPADACITINIBE","USTEQUINUMABE","VEDOLIZUMABE","VIGABATRINA","ZIPRASIDONA"
-];
+// ====================================================
+// DATA: MEDICAMENTOS x CID
+// ====================================================
+const MED_CID = {"ABATACEPTE 125 mg/mL (SERINGA PREENCHIDA)": [{"cid": "M05.0", "diag": "Artrite Reumatoide"}, {"cid": "M05.1", "diag": "Artrite Reumatoide"}, {"cid": "M05.2", "diag": "Artrite Reumatoide"}, {"cid": "M05.3", "diag": "Artrite Reumatoide"}, {"cid": "M05.8", "diag": "Artrite Reumatoide"}, {"cid": "M06.0", "diag": "Artrite Reumatoide"}, {"cid": "M06.8", "diag": "Artrite Reumatoide"}], "ABATACEPTE 250 mg (FRASCO AMPOLA)": [{"cid": "M08.0", "diag": "Artrite Idiopática Juvenil"}, {"cid": "M08.1", "diag": "Artrite Idiopática Juvenil"}, {"cid": "M08.2", "diag": "Artrite Idiopática Juvenil"}, {"cid": "M08.3", "diag": "Artrite Idiopática Juvenil"}, {"cid": "M08.4", "diag": "Artrite Idiopática Juvenil"}, {"cid": "M08.8", "diag": "Artrite Idiopática Juvenil"}, {"cid": "M08.9", "diag": "Artrite Idiopática Juvenil"}], "ÁCIDO URSODESOXICÓLICO": [{"cid": "K74.3", "diag": "Colangite Biliar Primária"}], "ÁCIDO ZOLEDRÔNICO": [{"cid": "M88.0", "diag": "Doença de Paget"}, {"cid": "M88.8", "diag": "Doença de Paget"}], "ACITRETINA": [{"cid": "L40.0", "diag": "Psoríase"}, {"cid": "L40.1", "diag": "Psoríase"}, {"cid": "L40.4", "diag": "Psoríase"}, {"cid": "L40.8", "diag": "Psoríase"}], "AMANTADINA": [{"cid": "G20", "diag": "Doença de Parkinson"}], "AMBRISENTANA": [{"cid": "I27.0", "diag": "Hipertensão Pulmonar"}, {"cid": "I27.2", "diag": "Hipertensão Pulmonar"}, {"cid": "I27.8", "diag": "Hipertensão Pulmonar"}], "ATORVASTATINA": [{"cid": "E78.0", "diag": "Dislipidemia"}], "BARICITINIBE": [{"cid": "M05.0", "diag": "Artrite Reumatoide"}, {"cid": "M05.1", "diag": "Artrite Reumatoide"}], "BEZAFIBRATO": [{"cid": "E78.0", "diag": "Dislipidemia"}], "BIOTINA": [{"cid": "E88.9", "diag": "Deficiência de Biotinidase"}], "BOSENTANA": [{"cid": "I27.0", "diag": "Hipertensão Pulmonar"}], "BUDESONIDA": [{"cid": "J44.0", "diag": "DPOC"}, {"cid": "J45.0", "diag": "Asma"}], "CABERGOLINA": [{"cid": "E22.0", "diag": "Acromegalia"}, {"cid": "E22.1", "diag": "Hiperprolactinemia"}], "CALCIPOTRIOL": [{"cid": "L40.0", "diag": "Psoríase"}, {"cid": "L40.1", "diag": "Psoríase"}], "CALCITONINA": [{"cid": "M80.0", "diag": "Osteoporose"}, {"cid": "M88.0", "diag": "Doença de Paget"}], "CALCITRIOL": [{"cid": "E20.0", "diag": "Hipoparatireoidismo"}, {"cid": "M80.0", "diag": "Osteoporose"}], "CERTOLIZUMABE PEGOL": [{"cid": "K50.0", "diag": "Doença de Crohn"}, {"cid": "M05.0", "diag": "Artrite Reumatoide"}], "CICLOFOSFAMIDA": [{"cid": "D59.0", "diag": "Anemia Hemolítica Autoimune"}, {"cid": "L93.0", "diag": "Lúpus Eritematoso"}], "CICLOSPORINA": [{"cid": "D60.0", "diag": "Falência Medular"}, {"cid": "L40.0", "diag": "Psoríase"}], "CINACALCETE": [{"cid": "N18.0", "diag": "Doença Renal Crônica"}], "CIPROFIBRATO": [{"cid": "E78.0", "diag": "Dislipidemia"}], "CLADRIBINA": [{"cid": "G35", "diag": "Esclerose Múltipla"}], "CLOBAZAM": [{"cid": "G40.0", "diag": "Epilepsia"}], "CLOBETASOL": [{"cid": "L40.0", "diag": "Psoríase"}], "CLOPIDOGREL": [{"cid": "I20.0", "diag": "Síndrome Coronariana"}], "CLOROQUINA": [{"cid": "L93.0", "diag": "Lúpus Eritematoso"}], "CLOZAPINA": [{"cid": "F20.0", "diag": "Esquizofrenia"}], "CODEÍNA": [{"cid": "R52.1", "diag": "Dor Crônica"}], "COLISTIMETATO": [{"cid": "E84.0", "diag": "Fibrose Cística"}], "DAPAGLIFLOZINA": [{"cid": "E11.2", "diag": "Diabetes Tipo 2"}, {"cid": "I50.0", "diag": "Insuficiência Cardíaca"}], "DEFERASIROX": [{"cid": "E83.1", "diag": "Sobrecarga de ferro"}], "DEFERIPRONA": [{"cid": "E83.1", "diag": "Sobrecarga de ferro"}], "DESFERROXAMINA": [{"cid": "E83.1", "diag": "Sobrecarga de ferro"}], "DESMOPRESSINA": [{"cid": "E23.2", "diag": "Diabetes Insípido"}], "DONEPEZILA": [{"cid": "G30.0", "diag": "Alzheimer"}], "ECULIZUMABE": [{"cid": "D59.5", "diag": "Hemoglobinúria Paroxística Noturna"}], "ELEXACAFTOR+TEZACAFTOR+IVACAFTOR": [{"cid": "E84.0", "diag": "Fibrose Cística"}, {"cid": "E84.1", "diag": "Fibrose Cística"}, {"cid": "E84.8", "diag": "Fibrose Cística"}], "ELTROMBOPAGUE": [{"cid": "D69.3", "diag": "Púrpura Trombocitopênica Idiopática"}, {"cid": "D61.0", "diag": "Falência Medular"}], "ENOXAPARINA": [{"cid": "I82.0", "diag": "Tromboembolismo Venoso"}], "ENTACAPONA": [{"cid": "G20", "diag": "Doença de Parkinson"}], "ETANERCEPTE": [{"cid": "M05.0", "diag": "Artrite Reumatoide"}, {"cid": "M07.0", "diag": "Artrite Psoriásica"}], "ETOSSUXIMIDA": [{"cid": "G40.0", "diag": "Epilepsia"}], "EVEROLIMO": [{"cid": "T86.2", "diag": "Transplante Cardíaco"}, {"cid": "T86.1", "diag": "Transplante Renal"}], "FENOFIBRATO": [{"cid": "E78.0", "diag": "Dislipidemia"}], "FENOTEROL": [{"cid": "J44.0", "diag": "DPOC"}, {"cid": "J45.0", "diag": "Asma"}], "FILGRASTIM": [{"cid": "B17.1", "diag": "Hepatite C (alterações hematológicas)"}, {"cid": "D46.0", "diag": "Síndrome Mielodisplásica"}], "FINGOLIMODE": [{"cid": "G35", "diag": "Esclerose Múltipla"}], "FLUDROCORTISONA": [{"cid": "E25.0", "diag": "Hiperplasia Adrenal Congênita"}], "FLUTICASONA+UMECLIDÍNIO+VILANTEROL": [{"cid": "J44.0", "diag": "DPOC"}], "FORMOTEROL": [{"cid": "J44.0", "diag": "DPOC"}, {"cid": "J45.0", "diag": "Asma"}], "FORMOTEROL+BUDESONIDA": [{"cid": "J44.0", "diag": "DPOC"}, {"cid": "J45.0", "diag": "Asma"}], "FUMARATO DE DIMETILA": [{"cid": "G35", "diag": "Esclerose Múltipla"}], "GABAPENTINA": [{"cid": "G40.0", "diag": "Epilepsia"}, {"cid": "R52.1", "diag": "Dor Crônica"}], "GALANTAMINA": [{"cid": "G30.0", "diag": "Doença de Alzheimer"}], "GALSULFASE": [{"cid": "E76.2", "diag": "Mucopolissacaridose tipo VI"}], "GANCICLOVIR": [{"cid": "Z94.0", "diag": "Pacientes transplantados"}], "GENFIBROZILA": [{"cid": "E78.0", "diag": "Dislipidemia"}], "GLATIRÂMER": [{"cid": "G35", "diag": "Esclerose Múltipla"}], "GLICOPIRRÔNIO": [{"cid": "J44.0", "diag": "DPOC"}], "GOLIMUMABE": [{"cid": "M05.0", "diag": "Artrite Reumatoide"}, {"cid": "M07.0", "diag": "Artrite Psoriásica"}], "GOSSERRELINA": [{"cid": "D25.0", "diag": "Leiomioma uterino"}], "HIDROXICLOROQUINA": [{"cid": "L93.0", "diag": "Lúpus Eritematoso"}, {"cid": "M05.0", "diag": "Artrite Reumatoide"}], "HIDROXIUREIA": [{"cid": "D57.0", "diag": "Doença Falciforme"}], "IDURSULFASE": [{"cid": "E76.1", "diag": "Mucopolissacaridose tipo II"}], "ILOPROSTA": [{"cid": "I27.0", "diag": "Hipertensão Pulmonar"}], "IMIGLUCERASE": [{"cid": "E75.2", "diag": "Doença de Gaucher"}], "IMUNOGLOBULINA HUMANA": [{"cid": "D80.0", "diag": "Imunodeficiência primária"}, {"cid": "G61.0", "diag": "Síndrome Guillain-Barré"}], "INFLIXIMABE": [{"cid": "M05.0", "diag": "Artrite Reumatoide"}, {"cid": "K50.0", "diag": "Doença de Crohn"}], "INSULINA ANÁLOGA": [{"cid": "E10.0", "diag": "Diabetes Mellitus tipo 1"}], "ISOTRETINOÍNA": [{"cid": "L70.0", "diag": "Acne grave"}], "IVACAFTOR": [{"cid": "E84.0", "diag": "Fibrose Cística"}], "LAMOTRIGINA": [{"cid": "G40.0", "diag": "Epilepsia"}, {"cid": "F31.1", "diag": "Transtorno bipolar"}], "LANREOTIDA": [{"cid": "E22.0", "diag": "Acromegalia"}], "LARONIDASE": [{"cid": "E76.0", "diag": "Mucopolissacaridose tipo I"}], "LEFLUNOMIDA": [{"cid": "M05.0", "diag": "Artrite Reumatoide"}, {"cid": "M07.0", "diag": "Artrite Psoriásica"}], "LEUPRORRELINA": [{"cid": "D25.0", "diag": "Leiomioma uterino"}, {"cid": "E22.8", "diag": "Puberdade precoce"}], "LEVETIRACETAM": [{"cid": "G40.0", "diag": "Epilepsia"}], "LINEZOLIDA": [{"cid": "E84.0", "diag": "Fibrose Cística"}], "MEMANTINA": [{"cid": "G30.0", "diag": "Doença de Alzheimer"}], "MEPOLIZUMABE": [{"cid": "J45.0", "diag": "Asma"}], "MESALAZINA": [{"cid": "K50.0", "diag": "Doença de Crohn"}, {"cid": "K51.0", "diag": "Retocolite ulcerativa"}], "METADONA": [{"cid": "R52.1", "diag": "Dor Crônica"}], "METOTREXATO": [{"cid": "L40.0", "diag": "Psoríase"}, {"cid": "M05.0", "diag": "Artrite Reumatoide"}], "MICOFENOLATO DE SÓDIO": [{"cid": "T86.1", "diag": "Transplante renal"}], "MICOFENOLATO DE MOFETILA": [{"cid": "T86.2", "diag": "Transplante cardíaco"}], "MIGLUSTATE": [{"cid": "E75.2", "diag": "Doença de Gaucher"}], "MINOCICLINA": [{"cid": "E84.0", "diag": "Fibrose Cística"}], "MORFINA": [{"cid": "R52.1", "diag": "Dor Crônica"}], "NAPROXENO": [{"cid": "M02.1", "diag": "Artrite reativa"}, {"cid": "M05.0", "diag": "Artrite Reumatoide"}], "NATALIZUMABE": [{"cid": "G35", "diag": "Esclerose Múltipla"}], "NINTEDANIBE": [{"cid": "J84.1", "diag": "Doença pulmonar intersticial fibrosante"}], "OLANZAPINA": [{"cid": "F20.0", "diag": "Esquizofrenia"}, {"cid": "F25.0", "diag": "Transtorno Esquizoafetivo"}, {"cid": "F31.1", "diag": "Transtorno Bipolar"}], "OMALIZUMABE": [{"cid": "J45.0", "diag": "Asma"}, {"cid": "J45.8", "diag": "Asma"}], "PANCREATINA": [{"cid": "E84.1", "diag": "Fibrose Cística"}, {"cid": "K86.0", "diag": "Insuficiência Pancreática"}], "PARICALCITOL": [{"cid": "E83.3", "diag": "Doença Renal Crônica"}], "PENICILAMINA": [{"cid": "E83.0", "diag": "Doença de Wilson"}], "PIRFENIDONA": [{"cid": "J84.1", "diag": "Doença pulmonar intersticial"}], "PIRIDOSTIGMINA": [{"cid": "G70.0", "diag": "Miastenia Gravis"}], "PRAMIPEXOL": [{"cid": "G20", "diag": "Doença de Parkinson"}], "PRIMIDONA": [{"cid": "G40.0", "diag": "Epilepsia"}], "QUETIAPINA": [{"cid": "F20.0", "diag": "Esquizofrenia"}, {"cid": "F25.0", "diag": "Transtorno Esquizoafetivo"}, {"cid": "F31.1", "diag": "Transtorno Bipolar"}], "RALOXIFENO": [{"cid": "M80.0", "diag": "Osteoporose"}], "RASAGILINA": [{"cid": "G20", "diag": "Doença de Parkinson"}], "RILUZOL": [{"cid": "G12.2", "diag": "Esclerose Lateral Amiotrófica"}], "RISANQUIZUMABE": [{"cid": "L40.0", "diag": "Psoríase"}], "RISDIPLAM": [{"cid": "G12.0", "diag": "Atrofia Muscular Espinhal"}], "RISEDRONATO": [{"cid": "M80.0", "diag": "Osteoporose"}, {"cid": "M88.0", "diag": "Doença de Paget"}], "RISPERIDONA": [{"cid": "F20.0", "diag": "Esquizofrenia"}, {"cid": "F84.0", "diag": "TEA - comportamento agressivo"}], "RITUXIMABE": [{"cid": "M31.3", "diag": "Vasculite ANCA"}, {"cid": "M05.0", "diag": "Artrite Reumatoide"}], "RIVASTIGMINA": [{"cid": "G30.0", "diag": "Doença de Alzheimer"}, {"cid": "G20", "diag": "Doença de Parkinson"}], "ROMOSOZUMABE": [{"cid": "M80.0", "diag": "Osteoporose"}], "SACARATO DE HIDRÓXIDO FÉRRICO": [{"cid": "N18.0", "diag": "Anemia na Doença Renal Crônica"}], "SACUBITRIL VALSARTANA": [{"cid": "I50.0", "diag": "Insuficiência Cardíaca"}], "SALMETEROL + FLUTICASONA": [{"cid": "J44.0", "diag": "DPOC"}], "SAPROPTERINA": [{"cid": "E70.0", "diag": "Fenilcetonúria"}], "SECUQUINUMABE": [{"cid": "L40.0", "diag": "Psoríase"}], "SEVELÂMER": [{"cid": "N18.0", "diag": "Doença Renal Crônica"}], "SILDENAFILA": [{"cid": "I27.0", "diag": "Hipertensão Pulmonar"}], "SIROLIMO": [{"cid": "T86.1", "diag": "Transplante Renal"}], "SOMATROPINA": [{"cid": "E23.0", "diag": "Deficiência de GH"}], "SULFASSALAZINA": [{"cid": "K50.0", "diag": "Doença de Crohn"}], "TACROLIMO": [{"cid": "T86.1", "diag": "Transplante Renal"}], "TAFAMIDIS": [{"cid": "E85.1", "diag": "Amiloidose"}], "TERIFLUNOMIDA": [{"cid": "G35", "diag": "Esclerose Múltipla"}], "TIOTRÓPIO": [{"cid": "J44.0", "diag": "DPOC"}], "TOBRAMICINA": [{"cid": "E84.0", "diag": "Fibrose Cística"}], "TOCILIZUMABE": [{"cid": "M05.0", "diag": "Artrite Reumatoide"}], "TOFACITINIBE": [{"cid": "M05.0", "diag": "Artrite Reumatoide"}], "TOPIRAMATO": [{"cid": "G40.0", "diag": "Epilepsia"}], "TOXINA BOTULÍNICA TIPO A": [{"cid": "G24.3", "diag": "Distonias"}], "UMECLIDÍNIO": [{"cid": "J44.0", "diag": "Doença Pulmonar Obstrutiva Crônica"}], "UMECLIDÍNIO + VILANTEROL": [{"cid": "J44.0", "diag": "Doença Pulmonar Obstrutiva Crônica"}], "UPADACITINIBE": [{"cid": "M05.0", "diag": "Artrite Reumatoide"}], "USTEQUINUMABE": [{"cid": "L40.0", "diag": "Psoríase"}], "VEDOLIZUMABE": [{"cid": "K51.0", "diag": "Retocolite Ulcerativa"}], "VIGABATRINA": [{"cid": "G40.0", "diag": "Epilepsia"}], "ZIPRASIDONA": [{"cid": "F20.0", "diag": "Esquizofrenia"}, {"cid": "F25.0", "diag": "Transtorno Esquizoafetivo"}]};
 
-// ── TABELA DE MEDICAMENTOS (6 linhas) ──
-const tbody = document.getElementById('tabela-med-body');
-for (let i = 1; i <= 6; i++) {
-  const tr = document.createElement('tr');
-  tr.innerHTML = `<td>${i}</td>
-    <td>
-      <input list="med-list" name="med_${i}" placeholder="Digite ou selecione o medicamento..." autocomplete="off">
-    </td>
-    ${[1,2,3,4,5,6].map(m => `<td class="col-qtd"><input type="number" name="qtd_${i}_m${m}" placeholder="-" min="0" class="col-qtd-input"></td>`).join('')}`;
-  tbody.appendChild(tr);
+const MEDS = Object.keys(MED_CID).sort();
+
+// ====================================================
+// BUILD MEDICATION TABLE ROWS
+// ====================================================
+function buildMedTable() {
+  const tbody = document.getElementById('med-tbody');
+  for (let i = 1; i <= 6; i++) {
+    const tr = document.createElement('tr');
+    let selOptions = '<option value="">-- Selecione --</option>';
+    MEDS.forEach(m => { selOptions += `<option value="${m}">${m}</option>`; });
+    tr.innerHTML = `
+      <td>${i}</td>
+      <td><select onchange="onMedChange(this, ${i})">${selOptions}</select></td>
+      <td class="qty-cell"><input type="number" min="0" placeholder="0" class="qty-input" data-row="${i}" data-mes="1"></td>
+      <td class="qty-cell"><input type="number" min="0" placeholder="0" class="qty-input" data-row="${i}" data-mes="2"></td>
+      <td class="qty-cell"><input type="number" min="0" placeholder="0" class="qty-input" data-row="${i}" data-mes="3"></td>
+      <td class="qty-cell"><input type="number" min="0" placeholder="0" class="qty-input" data-row="${i}" data-mes="4"></td>
+      <td class="qty-cell"><input type="number" min="0" placeholder="0" class="qty-input" data-row="${i}" data-mes="5"></td>
+      <td class="qty-cell"><input type="number" min="0" placeholder="0" class="qty-input" data-row="${i}" data-mes="6"></td>
+    `;
+    tbody.appendChild(tr);
+  }
 }
 
-// datalist para os medicamentos
-const dl = document.createElement('datalist');
-dl.id = 'med-list';
-medicamentos.forEach(m => {
-  const opt = document.createElement('option');
-  opt.value = m;
-  dl.appendChild(opt);
-});
-document.body.appendChild(dl);
-
-// ── CID-10: linha inicial ──
-let cidCount = 0;
-function adicionarCID() {
-  cidCount++;
-  const container = document.getElementById('cids-container');
-  const div = document.createElement('div');
-  div.className = 'cid-linha';
-  div.id = `cid-linha-${cidCount}`;
-  div.innerHTML = `
-    <div class="campo cid-codigo">
-      <label class="campo-label">CID-10${cidCount === 1 ? ' <span class="obrig">*</span>' : ''}</label>
-      <input type="text" name="cid_codigo_${cidCount}" placeholder="Ex: J44.0" maxlength="10" style="text-transform:uppercase">
-    </div>
-    <div class="campo cid-desc">
-      <label class="campo-label">Diagnóstico</label>
-      <input type="text" name="cid_diag_${cidCount}" placeholder="Descrição do diagnóstico">
-    </div>
-    ${cidCount > 1 ? `<button onclick="removerCID(${cidCount})" style="background:none;border:1px solid #ccc;border-radius:2px;padding:0 7px;cursor:pointer;height:26px;font-size:13px;color:#999;align-self:flex-end;margin-bottom:0">✕</button>` : ''}
-  `;
-  container.appendChild(div);
+// When medication in row 1 changes, update CID dropdown
+function onMedChange(sel, rowNum) {
+  if (rowNum === 1) updateCIDDropdown();
 }
-function removerCID(n) {
-  const el = document.getElementById(`cid-linha-${n}`);
-  if (el) el.remove();
-}
-adicionarCID(); // inicia com 1 linha
 
-// ── RADIO: tratamento prévio ──
-document.querySelectorAll('input[name="trat_previo"]').forEach(r => {
-  r.addEventListener('change', () => {
-    document.getElementById('trat_previo_detalhe').style.display =
-      r.value === 'sim' && r.checked ? 'block' : 'none';
+function updateCIDDropdown() {
+  const row1Select = document.querySelector('#med-tbody tr:first-child select');
+  const med = row1Select ? row1Select.value : '';
+  const cidSel = document.getElementById('cid_select');
+  cidSel.innerHTML = '';
+  if (!med) {
+    cidSel.innerHTML = '<option value="">-- Selecione o medicamento primeiro --</option>';
+    document.getElementById('diagnostico').value = '';
+    return;
+  }
+  const cids = MED_CID[med] || [];
+  if (cids.length === 0) {
+    cidSel.innerHTML = '<option value="">-- Nenhum CID vinculado --</option>';
+    document.getElementById('diagnostico').value = '';
+    return;
+  }
+  cidSel.innerHTML = '<option value="">-- Selecione o CID --</option>';
+  cids.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.cid;
+    opt.textContent = `${c.cid} - ${c.diag}`;
+    opt.dataset.diag = c.diag;
+    cidSel.appendChild(opt);
   });
-});
-
-// ── RADIO: capacidade ──
-document.querySelectorAll('input[name="capacidade"]').forEach(r => {
-  r.addEventListener('change', () => {
-    document.getElementById('responsavel_campo').style.display =
-      r.value === 'sim' && r.checked ? 'block' : 'none';
-  });
-});
-
-// ── LIMPAR FORMULÁRIO ──
-function limparFormulario() {
-  if (!confirm('Tem certeza que deseja limpar todos os campos do formulário?')) return;
-  document.querySelectorAll('input[type=text], input[type=number], input[type=date], input[type=email], textarea').forEach(el => el.value = '');
-  document.querySelectorAll('input[type=radio], input[type=checkbox]').forEach(el => el.checked = false);
-  document.getElementById('trat_previo_detalhe').style.display = 'none';
-  document.getElementById('responsavel_campo').style.display = 'none';
-  // resetar CIDs
-  document.getElementById('cids-container').innerHTML = '';
-  cidCount = 0;
-  adicionarCID();
+  document.getElementById('diagnostico').value = '';
 }
 
-// ── GERAR PDF ──
+function updateDiagnostico() {
+  const cidSel = document.getElementById('cid_select');
+  const selected = cidSel.options[cidSel.selectedIndex];
+  document.getElementById('diagnostico').value = selected && selected.dataset.diag ? selected.dataset.diag : '';
+}
+
+// ====================================================
+// TOGGLE RESPONSAVEL
+// ====================================================
+function toggleResponsavel() {
+  const val = document.querySelector('input[name="incapaz"]:checked');
+  const inp = document.getElementById('nome_responsavel');
+  if (val && val.value === 'SIM') {
+    inp.disabled = false;
+    inp.focus();
+  } else {
+    inp.disabled = true;
+    inp.value = '';
+  }
+}
+
+// ====================================================
+// MASKS
+// ====================================================
+function mascaraCPF(el) {
+  let v = el.value.replace(/\D/g,'');
+  if (v.length > 11) v = v.slice(0,11);
+  v = v.replace(/(\d{3})(\d)/, '$1.$2');
+  v = v.replace(/(\d{3})(\d)/, '$1.$2');
+  v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  el.value = v;
+}
+
+function mascaraTel(el) {
+  let v = el.value.replace(/\D/g,'');
+  if (v.length > 11) v = v.slice(0,11);
+  if (v.length > 10) {
+    v = v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+  } else if (v.length > 6) {
+    v = v.replace(/^(\d{2})(\d{4})(\d+)$/, '($1) $2-$3');
+  } else if (v.length > 2) {
+    v = v.replace(/^(\d{2})(\d+)$/, '($1) $2');
+  }
+  el.value = v;
+}
+
+function updateDocMask() { document.getElementById('doc_numero').value = ''; }
+
+function docInput(el) {
+  const tipo = document.querySelector('input[name="doc_tipo"]:checked');
+  if (tipo && tipo.value === 'CPF') {
+    mascaraCPF(el);
+  }
+}
+
+// ====================================================
+// PDF GENERATION
+// ====================================================
 function gerarPDF() {
-  const toolbar = document.getElementById('toolbar');
-  toolbar.style.display = 'none';
+  const btn = document.querySelector('.save-btn');
+  const orientacoes = document.querySelector('.orientacoes');
+  const saveBtnWrap = document.querySelector('.save-btn-wrap');
 
-  const btn_pdf = document.querySelector('.btn-pdf');
-  const btn_limpar = document.querySelector('.btn-limpar');
+  btn.textContent = '⏳ Gerando PDF...';
+  btn.disabled = true;
+  orientacoes.style.display = 'none';
+  saveBtnWrap.style.display = 'none';
+
+  const element = document.getElementById('lme-form');
 
   const opt = {
-    margin: [8, 6, 8, 6],
-    filename: 'LME_formulario.pdf',
-    image: { type: 'jpeg', quality: 0.97 },
-    html2canvas: { scale: 2, useCORS: true, logging: false },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: 'avoid-all' }
+    margin: [8, 8, 8, 8],
+    filename: 'LME_Solicitacao_Medicamento.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      letterRendering: true
+    },
+    jsPDF: {
+      unit: 'mm',
+      format: 'a4',
+      orientation: 'portrait'
+    },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
   };
 
-  html2pdf()
-    .set(opt)
-    .from(document.getElementById('formulario'))
-    .save()
-    .then(() => {
-      toolbar.style.display = 'flex';
-    });
+  html2pdf().set(opt).from(element).save().then(() => {
+    orientacoes.style.display = '';
+    saveBtnWrap.style.display = '';
+    btn.textContent = '💾 Salvar como PDF';
+    btn.disabled = false;
+  }).catch(err => {
+    orientacoes.style.display = '';
+    saveBtnWrap.style.display = '';
+    btn.textContent = '💾 Salvar como PDF';
+    btn.disabled = false;
+    alert('Erro ao gerar PDF. Tente novamente.');
+  });
 }
+
+// ====================================================
+// INIT
+// ====================================================
+buildMedTable();
 </script>
 </body>
 </html>
