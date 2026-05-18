@@ -360,17 +360,17 @@ textarea.req-empty{border-color:#9c0006 !important;background:#fce4e4 !important
     </div>
   </summary>
 </details>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:start;margin-top:4px;">
-    <!-- Coluna 1: opções Sim e Não -->
-    <div class="inl" id="rg_incapaz" style="flex-direction:column;gap:4px;">
-      <label><input type="radio" name="incapaz" id="inc_nao" value="NAO" onchange="onIncapaz()"> NÃO</label>
-      <label style="align-items:flex-start;flex-wrap:wrap;">
-        <input type="radio" name="incapaz" id="inc_sim" value="SIM" onchange="onIncapaz()" style="margin-top:1px;">
-        <span style="margin-left:3px;">SIM. Indicar o nome do responsável pelo paciente, o qual poderá realizar a solicitação do medicamento</span>
+  <div style="margin-top:4px;">
+    <!-- Opções NÃO e SIM lado a lado -->
+    <div class="inl" id="rg_incapaz" style="flex-wrap:nowrap;align-items:flex-start;gap:16px;">
+      <label style="white-space:nowrap;"><input type="radio" name="incapaz" id="inc_nao" value="NAO" onchange="onIncapaz()"> NÃO</label>
+      <label style="display:flex;align-items:flex-start;gap:3px;flex-wrap:nowrap;">
+        <input type="radio" name="incapaz" id="inc_sim" value="SIM" onchange="onIncapaz()" style="margin-top:2px;flex-shrink:0;">
+        <span>SIM. Indicar o nome do responsável pelo paciente, o qual poderá realizar a solicitação do medicamento</span>
       </label>
     </div>
-    <!-- Coluna 2: campo Nome do Responsável – aparece ao clicar em SIM -->
-    <div id="resp_wrap" style="display:none;">
+    <!-- Campo Nome do Responsável – aparece ao clicar em SIM -->
+    <div id="resp_wrap" style="display:none;margin-top:5px;">
       <span style="font-size:9.5px;font-weight:bold;">Nome do Responsável <span class="r">*</span></span>
       <input type="text" id="nome_resp" class="resp-inp req-empty" placeholder=" " onkeyup="chk(this)" onchange="chk(this)" disabled>
     </div>
