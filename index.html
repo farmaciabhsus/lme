@@ -96,11 +96,36 @@ textarea.req-empty{border-color:#9c0006 !important;background:#fce4e4 !important
 
 /* ─── PRINT ─── */
 @media print{
+  @page{
+    size:A4 portrait;
+    margin:4mm;
+  }
+  html,body{
+    width:210mm;
+    height:297mm;
+    margin:0;
+    padding:0;
+    background:#fff;
+    overflow:hidden;
+  }
   .toolbar,.ori{display:none!important;}
-  body{background:#fff;}
-  .fw{max-width:100%;margin:0;}
+  .fw{
+    max-width:100%;
+    margin:0;
+    padding:0;
+    width:100%;
+    /* Scale the form to fit one page */
+    transform-origin:top left;
+  }
+  #lme-form{
+    width:202mm; /* 210mm - 4mm margins each side */
+    transform:none;
+  }
   select{-webkit-appearance:none;appearance:none;}
   textarea{overflow:visible;height:auto;}
+  /* Prevent any page breaks */
+  *{page-break-inside:avoid;break-inside:avoid;}
+  #lme-form{page-break-after:avoid;break-after:avoid;}
 }
 </style>
 </head>
@@ -10904,51 +10929,44 @@ function initReq() {
 
 /* ── PDF – uses fixed width to force A4 fit ── */
 function gerarPDF() {
-  const bar=document.getElementById('toolbar');
-  const ori=document.getElementById('ori');
-  bar.style.display='none';
-  ori.style.display='none';
+  const el = document.getElementById('lme-form');
+  const fw = document.querySelector('.fw');
 
-  const el=document.getElementById('lme-form');
+  // A4 content area at 96dpi: (210mm - 8mm margins) and (297mm - 8mm margins)
+  const PX_PER_MM = 96 / 25.4;
+  const availW_px = (210 - 8) * PX_PER_MM;  // ~194mm in px
+  const availH_px = (297 - 8) * PX_PER_MM;  // ~289mm in px
 
-  // A4 portrait dimensions in mm and px at 96dpi
-  const A4_W_MM=210, A4_H_MM=297;
-  const MM_PER_PX=25.4/96;
-  const MARGIN_MM=4;
+  const formW = el.scrollWidth;
+  const formH = el.scrollHeight;
 
-  // Measure the natural rendered height of the form
-  const naturalW=el.offsetWidth;
-  const naturalH=el.offsetHeight;
-
-  // Available content area on A4 (mm)
-  const availW_mm=A4_W_MM - MARGIN_MM*2;
-  const availH_mm=A4_H_MM - MARGIN_MM*2;
-
-  // Scale factor to fit the entire form into one A4 page
-  const scaleW = availW_mm / (naturalW * MM_PER_PX);
-  const scaleH = availH_mm / (naturalH * MM_PER_PX);
+  const scaleW = availW_px / formW;
+  const scaleH = availH_px / formH;
   const scale  = Math.min(scaleW, scaleH);
 
-  // html2canvas render width: scale the A4 content width back to px
-  const renderW = Math.round((availW_mm / MM_PER_PX) / scale);
+  // Apply scale transform to the form wrapper during print
+  const style = document.createElement('style');
+  style.id = 'print-scale-style';
+  style.textContent = `
+    @media print {
+      .fw {
+        transform: scale(${scale}) !important;
+        transform-origin: top left !important;
+        width: ${formW}px !important;
+        height: ${formH}px !important;
+        overflow: hidden !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
 
-  const opt={
-    margin:[MARGIN_MM, MARGIN_MM, MARGIN_MM, MARGIN_MM],
-    filename:'LME_Solicitacao_Medicamento.pdf',
-    image:{type:'jpeg',quality:0.98},
-    html2canvas:{scale:scale, useCORS:true, logging:false, letterRendering:true, windowWidth:renderW},
-    jsPDF:{unit:'mm', format:'a4', orientation:'portrait'},
-    pagebreak:{mode:[]}
-  };
+  window.print();
 
-  html2pdf().set(opt).from(el).save().then(()=>{
-    bar.style.display='';
-    ori.style.display='';
-  }).catch(()=>{
-    bar.style.display='';
-    ori.style.display='';
-    alert('Erro ao gerar PDF. Tente novamente.');
-  });
+  // Clean up injected style after print dialog closes
+  setTimeout(() => {
+    const s = document.getElementById('print-scale-style');
+    if (s) s.remove();
+  }, 2000);
 }
 
 /* ── Boot ── */
