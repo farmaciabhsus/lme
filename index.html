@@ -109,8 +109,8 @@ textarea.req-empty{border-color:#9c0006 !important;background:#fce4e4 !important
 <div class="toolbar" id="toolbar">
   <h1>Laudo de Solicitação, Avaliação e Autorização de Medicamentos (LME)</h1>
   <div class="tbr">
-    <button class="btn-clr" onclick="limpar()">🗑 Limpar</button>
-    <button class="btn-pdf" onclick="gerarPDF()">💾 Exportar PDF para assinatura </button>
+    <button class="btn-clr" onclick="limpar()">🗑 Preencher nova LME</button>
+    <button class="btn-pdf" onclick="gerarPDF()">💾 Exportar PDF para assinatura</button>
   </div>
 </div>
 
@@ -170,9 +170,9 @@ textarea.req-empty{border-color:#9c0006 !important;background:#fce4e4 !important
 </div>
   <div class="cell">
     <details>
-        <summary class="lbl" title="Escreva o nome fantasia da clínica ou hospital correspondente ao CNES ao lado">2. Nome do Estabelecimento de Saúde Solicitante</summary>
+        <summary class="lbl" title="Escreva o nome fantasia da clínica ou hospital correspondente ao CNES ao lado">2. Nome do Estabelecimento de Saúde Solicitante <span class="r">*</span></summary>
     </details>
-    <input type="text" id="estabelecimento" placeholder=" ">
+    <input type="text" id="estabelecimento" onkeyup="chk(this)" onchange="chk(this)" placeholder=" ">
 </div>
 </div>
 
@@ -10882,7 +10882,7 @@ function limpar() {
 
 /* ── Init required highlights ── */
 function initReq() {
-  ['cnes','nome_civil','peso','altura','nome_mae','nome_med','cns_med','data_sol','anamnese'].forEach(id=>{
+  ['cnes','estabelecimento','nome_civil','peso','altura','nome_mae','nome_med','cns_med','data_sol','anamnese'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.classList.add('req-empty');
   });
