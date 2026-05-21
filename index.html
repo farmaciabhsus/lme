@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- v2025-05-19b -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -144,6 +145,7 @@ textarea.req-empty{border-color:#9c0006 !important;background:#fce4e4 !important
   👉 Preencha todos os campos obrigatórios marcados com asterisco (*).<br>
   👉 Campos em vermelho ficam destacados até serem preenchidos.<br>
   Este formulário <b>não salva informações</b>, por isso salve em formato PDF, ao término do preenchimento e revisão.<br>
+  👉 Passe o mouse em cada pergunta, para verificar as orientações de preenchimento.<br>
   👉 O formulário pode conter erros, por isso sempre confira as informações sobre medicamentos, CID e diagnósticos, em:<br>
   a) Lista de medicamentos do CEAF (ordem alfabética): <a href="https://www.saude.mg.gov.br/obtermedicamentos/ceaf/lista-de-medicamentos-por-ordem-alfabetica-ceaf/" target="_blank">https://www.saude.mg.gov.br/obtermedicamentos/ceaf/lista-de-medicamentos-por-ordem-alfabetica-ceaf/</a><br>
   b) Lista de medicamentos do CEAF (por doença): <a href="https://www.saude.mg.gov.br/obtermedicamentos/ceaf/lista-de-medicamentos-por-doenca/" target="_blank">https://www.saude.mg.gov.br/obtermedicamentos/ceaf/lista-de-medicamentos-por-doenca/</a><br>
@@ -151,7 +153,6 @@ textarea.req-empty{border-color:#9c0006 !important;background:#fce4e4 !important
   👉 O paciente deve providenciar todos os documentos e exames exigidos de acordo com o checklist para o seu tratamento específico: <a href="https://www.saude.mg.gov.br/obtermedicamentos/ceaf/formulariosceaf/" target="_blank">https://www.saude.mg.gov.br/obtermedicamentos/ceaf/formulariosceaf/</a><br>
   👉 Se o paciente tiver duas doenças diferentes, o médico deve preencher duas LMEs separadas.<br>
   👉 Uma única LME aceita no máximo 6 medicamentos para o mesmo CID<br>
-  👉 Passe o mouse em cada pergunta, para verificar as orientações de preenchimento<br>
   👉 Busca CNES: <a href="https://assinador.iti.br/" target="_blank">http://cnes.datasus.gov.br/</a>
   
 </div>
@@ -247,12 +248,13 @@ textarea.req-empty{border-color:#9c0006 !important;background:#fce4e4 !important
     <tr>
       <th colspan="2" style="text-align:center;">
         <details>
-          <summary title="Use obrigatoriamente a Denominação Comum Brasileira (DCB) — nome genérico — e inclua a concentração. Erro comum: Não coloque apenas o nome comercial. Se o médico indicar uma marca, o farmacêutico só poderá aceitar se for a mesma disponível no estoque do SUS">7. <b>Medicamentos</b> <span style="color:#c00;">*</span></summary>
+          <summary title="Use obrigatoriamente a Denominação Comum Brasileira (DCB) — nome genérico — e inclua a concentração. Inclua todos os medicamentos o tratamento do mesmo CID, que serão utilizados em associação e são fornecidos pela SES-MG.">7. <b>Medicamentos</b> <span style="color:#c00;">*</span></summary>
         </details>
       </th>
       <th colspan="6">
         <details>
-          <summary title="Indique a quantidade mensal necessária para cada um dos 6 meses em algarismos arábicos. Esta quantidade deve ser idêntica à posologia da receita médica. Para esquemas de 21 em 21 dias, lembre-se que alguns meses terão quantidade dobrada (ex: 2 frascos no 1º, 3º e 5º mês)">8. <b>Quantidade Solicitada</b> <span style="color:#c00;">*</span></summary>
+          <summary title="Informe apenas o número de cápsulas, comprimidos, seringas, frascos ou ampolas. Baseie o cálculo em 30 dias de tratamento ou 4 semanas para ciclos semanais. Erros comuns: informar unidade que não corresponde ao SIGTAP - número de mL ou doses. O correto neste caso é informar somente número de cápsulas, comprimidos, seringas, frascos ou ampolas.
+considerar mês de 31 dias. Correto no caso é considerar mês de 30 dias para tratamento diário ou 4 semanas para medicamentos com ciclos semanais.">8. <b>Quantidade Solicitada</b> <span style="color:#c00;">*</span></summary>
         </details>
       </th>
     </tr>
@@ -407,7 +409,7 @@ textarea.req-empty{border-color:#9c0006 !important;background:#fce4e4 !important
   </div>
   <!-- 17 Assinatura – coluna direita, altura total -->
   <div style="padding:3px 6px;min-height:64px;">
-    <details style="display: inline-block; cursor: pointer;" title="Deve conter o carimbo com o CRM e a assinatura original. O carimbo pode ser dispensado apenas se os dados do médico (nome e CRM) estiverem impressos no cabeçalho oficial do documento">
+    <details style="display: inline-block; cursor: pointer;" title="Até orientação do contrário, sempre exigimos o carimbo ou os dados do médico no campo 17. Caso o preenchimento seja eletrônico, a assinatura é validada pelo ITI, mas os dados do médico devem constar no campo 17.">
       <summary class="lbl" style="list-style: none; outline: none;">17. Assinatura e carimbo do médico <span class="r">*</span></summary>
     </details>
     <div class="sigbox" style="min-height:48px;"></div>
@@ -452,7 +454,7 @@ textarea.req-empty{border-color:#9c0006 !important;background:#fce4e4 !important
     </div>
   </div>
   <div class="cell">
-    <details style="display: inline-block; cursor: pointer;" title="Informe números atualizados para que a farmácia possa avisar sobre o resultado da avaliação ou falta de medicamentos">
+    <details style="display: inline-block; cursor: pointer;" title="Informe números de telefone atualizados para que a farmácia possa contatá-lo em caso de imprevistos relacionados ao seu atendimento.">
       <summary class="lbl" style="list-style: none; outline: none;">20. Telefone(s) para contato do paciente <span class="r">*</span></summary>
     </details>
     <div style="margin-top:4px;">
