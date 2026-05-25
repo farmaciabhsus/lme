@@ -11266,8 +11266,8 @@ setTimeout(updateCounter, 100);
     <div id="wiz-input-area"></div>
     <div id="wiz-error"></div>
     <div class="wiz-buttons">
-      <button id="wiz-btn-back" onclick="wizBack()">← Voltar</button>
-      <button id="wiz-btn-next" onclick="wizNext()">Próximo →</button>
+      <button id="wiz-btn-back">← Voltar</button>
+      <button id="wiz-btn-next">Próximo →</button>
     </div>
   </div>
   <div style="margin-top:16px;font-size:11.5px;color:#aed6f1;">
@@ -11815,12 +11815,12 @@ function wizNext() {
 
   if (currentStep < STEPS.length - 1) {
     currentStep++;
-    // Pula CID se med1 não selecionado (já tratado no render), mas aqui garantimos
     wizRender();
   } else {
     wizFinish();
   }
 }
+window.wizNext = wizNext;
 
 function wizBack() {
   if (currentStep === 0) {
@@ -11830,6 +11830,7 @@ function wizBack() {
     wizRender();
   }
 }
+window.wizBack = wizBack;
 
 function wizFinish() {
   const overlay = document.getElementById('wiz-overlay');
@@ -11859,6 +11860,10 @@ window.wizOpen = function() {
 
 // Inicia automaticamente
 wizRender();
+
+// Vincula botões via JS (garante funcionamento mesmo dentro de IIFE)
+document.getElementById('wiz-btn-next').addEventListener('click', function() { wizNext(); });
+document.getElementById('wiz-btn-back').addEventListener('click', function() { wizBack(); });
 
 })();
 </script>
