@@ -11742,6 +11742,11 @@ function wizRender() {
     rg.className = 'wiz-radio-group';
     const cur = document.querySelector('input[name="preench"]:checked');
     const curVal = cur ? cur.value : '';
+    const cbOutro = document.getElementById('cb_outro');
+    const outroChecked = cbOutro ? cbOutro.checked : false;
+    const outroNomeVal = (document.getElementById('outro_nome') || {}).value || '';
+    const outroCpfVal = (document.getElementById('outro_cpf') || {}).value || '';
+
     [['Paciente','Paciente'],['Mae','Mãe do Paciente'],['Responsavel','Responsável (item 13)'],['Medico','Médico Solicitante']].forEach(([val,lbl]) => {
       const lb = document.createElement('label');
       if (curVal === val) lb.classList.add('wiz-selected');
@@ -11749,10 +11754,47 @@ function wizRender() {
       lb.querySelector('input').addEventListener('change', function() {
         document.querySelectorAll('#wiz-input-area .wiz-radio-group label').forEach(l=>l.classList.remove('wiz-selected'));
         lb.classList.add('wiz-selected');
+        // Desmarca "Outro" se selecionar outro radio
+        const oc = document.getElementById('wiz-outro-chk');
+        if (oc) { oc.checked = false; }
+        const od = document.getElementById('wiz-outro-div');
+        if (od) od.style.display = 'none';
       });
       rg.appendChild(lb);
     });
+
+    // Opção "Outro" como checkbox
+    const outroLb = document.createElement('label');
+    outroLb.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 14px;border:2px solid #d5d8dc;border-radius:8px;cursor:pointer;font-size:13px;';
+    if (outroChecked) outroLb.style.borderColor = '#1a5276';
+    outroLb.innerHTML = `<input type="checkbox" id="wiz-outro-chk" style="width:16px;height:16px;accent-color:#1a5276;" ${outroChecked?'checked':''}> Outro — informar nome`;
+    outroLb.querySelector('input').addEventListener('change', function() {
+      const od = document.getElementById('wiz-outro-div');
+      od.style.display = this.checked ? 'block' : 'none';
+      outroLb.style.borderColor = this.checked ? '#1a5276' : '#d5d8dc';
+      if (this.checked) {
+        // Desmarca os radios
+        document.querySelectorAll('input[name="wiz_preench"]').forEach(r => r.checked = false);
+        document.querySelectorAll('#wiz-input-area .wiz-radio-group label').forEach(l => l.classList.remove('wiz-selected'));
+        setTimeout(() => { const ni = document.getElementById('wiz-outro-nome'); if(ni) ni.focus(); }, 80);
+      }
+    });
+    rg.appendChild(outroLb);
     area.appendChild(rg);
+
+    // Campos extras de "Outro"
+    const outroDiv = document.createElement('div');
+    outroDiv.id = 'wiz-outro-div';
+    outroDiv.style.cssText = 'display:' + (outroChecked ? 'block' : 'none') + ';margin-top:10px;display:' + (outroChecked?'flex':'none') + ';flex-direction:column;gap:8px;';
+    outroDiv.innerHTML = `
+      <div style="font-size:11px;color:#c0392b;font-weight:bold;">⚠️ Campo obrigatório ao marcar Outro</div>
+      <input type="text" id="wiz-outro-nome" placeholder="Nome completo de quem preencheu *" value="${outroNomeVal}"
+        style="padding:9px 12px;font-size:13px;border:2px solid #1a5276;border-radius:6px;width:100%;box-sizing:border-box;">
+      <input type="text" id="wiz-outro-cpf" placeholder="CPF (opcional)" value="${outroCpfVal}" maxlength="14"
+        style="padding:9px 12px;font-size:13px;border:2px solid #d5d8dc;border-radius:6px;width:100%;box-sizing:border-box;">
+    `;
+    outroDiv.querySelector('#wiz-outro-nome').addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();wizNext();} });
+    area.appendChild(outroDiv);
 
   } else if (t === 'radio_raca') {
     const rg = document.createElement('div');
@@ -11878,8 +11920,21 @@ function wizApplyToForm(step, val) {
     const ri = document.getElementById('wiz-resp-inp');
     if (ri && val === 'SIM') { document.getElementById('nome_resp').value = ri.value; chk(document.getElementById('nome_resp')); }
   } else if (t === 'radio_preench') {
-    const rb = document.querySelector(`input[name="preench"][value="${val}"]`);
-    if (rb) { rb.checked = true; chkRG('rg_preench'); }
+    if (val === 'Outro') {
+      // Marca o checkbox "Outro" no form real
+      const cbOutro = document.getElementById('cb_outro');
+      if (cbOutro && !cbOutro.checked) { cbOutro.checked = true; onOutro(); }
+      const wn = document.getElementById('wiz-outro-nome');
+      const wc = document.getElementById('wiz-outro-cpf');
+      const rn = document.getElementById('outro_nome');
+      const rc = document.getElementById('outro_cpf');
+      if (rn && wn) { rn.value = wn.value; chk(rn); }
+      if (rc && wc) { rc.value = wc.value; }
+      chkRG('rg_preench');
+    } else {
+      const rb = document.querySelector(`input[name="preench"][value="${val}"]`);
+      if (rb) { rb.checked = true; chkRG('rg_preench'); }
+    }
   } else if (t === 'radio_raca') {
     const rb = document.querySelector(`input[name="raca"][value="${val}"]`);
     if (rb) { rb.checked = true; onRaca(); }
@@ -11913,19 +11968,76 @@ function wizGetValue(step) {
     return 'ok';
   } else if (t === 'radio_trat') {
     const r = document.querySelector('input[name="wiz_trat"]:checked');
-    return r ? r.value : '';
+    const val = r ? r.value : '';
+    if (!val) { document.getElementById('wiz-error').textContent = '⚠️ Selecione uma opção.'; return null; }
+    if (val === 'SIM') {
+      const det = document.getElementById('wiz-trat-det-inp');
+      if (!det || !det.value.trim()) {
+        document.getElementById('wiz-error').textContent = '⚠️ Descreva o tratamento anterior (campo obrigatório ao marcar Sim).';
+        det && det.focus();
+        return null;
+      }
+    }
+    return val;
   } else if (t === 'radio_incapaz') {
     const r = document.querySelector('input[name="wiz_incapaz"]:checked');
-    return r ? r.value : '';
+    const val = r ? r.value : '';
+    if (!val) { document.getElementById('wiz-error').textContent = '⚠️ Selecione uma opção.'; return null; }
+    if (val === 'SIM') {
+      const ri = document.getElementById('wiz-resp-inp');
+      if (!ri || !ri.value.trim()) {
+        document.getElementById('wiz-error').textContent = '⚠️ Informe o nome do responsável (campo obrigatório ao marcar Sim).';
+        ri && ri.focus();
+        return null;
+      }
+    }
+    return val;
   } else if (t === 'radio_preench') {
     const r = document.querySelector('input[name="wiz_preench"]:checked');
-    return r ? r.value : '';
+    const val = r ? r.value : '';
+    if (!val) {
+      // Verifica se "Outro" está marcado
+      const outroChk = document.getElementById('wiz-outro-chk');
+      if (!outroChk || !outroChk.checked) {
+        document.getElementById('wiz-error').textContent = '⚠️ Selecione quem preencheu o formulário.'; return null;
+      }
+    }
+    // Se "Outro" marcado, nome é obrigatório
+    const outroChk = document.getElementById('wiz-outro-chk');
+    if (outroChk && outroChk.checked) {
+      const outroNome = document.getElementById('wiz-outro-nome');
+      if (!outroNome || !outroNome.value.trim()) {
+        document.getElementById('wiz-error').textContent = '⚠️ Informe o nome de quem está preenchendo (campo obrigatório ao marcar Outro).';
+        outroNome && outroNome.focus();
+        return null;
+      }
+      return 'Outro';
+    }
+    return val;
   } else if (t === 'radio_raca') {
     const r = document.querySelector('input[name="wiz_raca"]:checked');
-    return r ? r.value : '';
+    const val = r ? r.value : '';
+    if (!val) { document.getElementById('wiz-error').textContent = '⚠️ Selecione uma opção.'; return null; }
+    if (val === 'Indigena') {
+      const ei = document.getElementById('wiz-etnia-inp');
+      if (!ei || !ei.value.trim()) {
+        document.getElementById('wiz-error').textContent = '⚠️ Informe a etnia (campo obrigatório ao selecionar Indígena).';
+        ei && ei.focus();
+        return null;
+      }
+    }
+    return val;
   } else if (t === 'radio_doc') {
     const r = document.querySelector('input[name="wiz_doc_tipo"]:checked');
-    return r ? r.value : '';
+    const val = r ? r.value : '';
+    if (!val) { document.getElementById('wiz-error').textContent = '⚠️ Selecione o tipo de documento.'; return null; }
+    const docNum = document.getElementById('wiz-doc-num-inp');
+    if (!docNum || !docNum.value.trim()) {
+      document.getElementById('wiz-error').textContent = '⚠️ Informe o número do documento (obrigatório para CPF ou CNS).';
+      docNum && docNum.focus();
+      return null;
+    }
+    return val;
   }
   return '';
 }
