@@ -253,8 +253,7 @@ textarea.req-empty{border-color:#9c0006 !important;background:#fce4e4 !important
       </th>
       <th colspan="6">
         <details>
-          <summary title="Informe apenas o número de cápsulas, comprimidos, seringas, frascos ou ampolas. Baseie o cálculo em 30 dias de tratamento ou 4 semanas para ciclos semanais. Erros comuns: informar unidade que não corresponde ao SIGTAP - número de mL ou doses. O correto neste caso é informar somente número de cápsulas, comprimidos, seringas, frascos ou ampolas.
-considerar mês de 31 dias. Correto no caso é considerar mês de 30 dias para tratamento diário ou 4 semanas para medicamentos com ciclos semanais.">8. <b>Quantidade Solicitada</b> <span style="color:#c00;">*</span></summary>
+          <summary title="Informe apenas o número de cápsulas, comprimidos, seringas, frascos ou ampolas.">8. <b>Quantidade Solicitada</b> <span style="color:#c00;">*</span></summary>
         </details>
       </th>
     </tr>
@@ -10937,15 +10936,50 @@ function initReq() {
   if(doc_num) doc_num.classList.add('req-empty');
 }
 
-/* ── PDF – uses fixed width to force A4 fit ── */
+/* ── Validação de campos obrigatórios ── */
+function getEmptyRequired() {
+  const empties = [];
+  // Inputs/select/textarea com req-empty
+  document.querySelectorAll('#lme-form .req-empty').forEach(el => {
+    if (!el.disabled && el.offsetParent !== null) empties.push(el);
+  });
+  // Radio groups com erro
+  document.querySelectorAll('#lme-form .rg-err').forEach(el => {
+    if (el.offsetParent !== null) empties.push(el);
+  });
+  return empties;
+}
+
+function hasEmptyRequired() {
+  return getEmptyRequired().length > 0;
+}
+
+/* ── Modal de erro ── */
+function showModal(msg) {
+  document.getElementById('modal-msg').textContent = msg;
+  document.getElementById('validation-modal').style.display = 'flex';
+}
+function closeModal() {
+  document.getElementById('validation-modal').style.display = 'none';
+}
+
+/* ── PDF – só gera se todos os campos obrigatórios estiverem preenchidos ── */
 function gerarPDF() {
+  if (hasEmptyRequired()) {
+    const empties = getEmptyRequired();
+    // Scroll para o primeiro campo vazio
+    empties[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    empties[0].focus && empties[0].focus();
+    showModal('Ainda há ' + empties.length + ' campo(s) obrigatório(s) em vermelho não preenchido(s).\n\nPor favor, preencha todos os campos destacados em vermelho antes de exportar o PDF.');
+    return;
+  }
+
   const el = document.getElementById('lme-form');
   const fw = document.querySelector('.fw');
 
-  // A4 content area at 96dpi: (210mm - 8mm margins) and (297mm - 8mm margins)
   const PX_PER_MM = 96 / 25.4;
-  const availW_px = (210 - 8) * PX_PER_MM;  // ~194mm in px
-  const availH_px = (297 - 8) * PX_PER_MM;  // ~289mm in px
+  const availW_px = (210 - 8) * PX_PER_MM;
+  const availH_px = (297 - 8) * PX_PER_MM;
 
   const formW = el.scrollWidth;
   const formH = el.scrollHeight;
@@ -10954,7 +10988,6 @@ function gerarPDF() {
   const scaleH = availH_px / formH;
   const scale  = Math.min(scaleW, scaleH);
 
-  // Apply scale transform to the form wrapper during print
   const style = document.createElement('style');
   style.id = 'print-scale-style';
   style.textContent = `
@@ -10972,17 +11005,125 @@ function gerarPDF() {
 
   window.print();
 
-  // Clean up injected style after print dialog closes
   setTimeout(() => {
     const s = document.getElementById('print-scale-style');
     if (s) s.remove();
   }, 2000);
 }
 
+/* ── Navegação por Enter: avança para o próximo campo obrigatório em vermelho ── */
+function setupStepNavigation() {
+  function getFocusableRequired() {
+    const all = [];
+    document.querySelectorAll('#lme-form input:not([type=radio]):not([type=checkbox]):not([disabled]), #lme-form select:not([disabled]), #lme-form textarea:not([disabled])').forEach(el => {
+      if (el.offsetParent !== null) all.push(el);
+    });
+    return all;
+  }
+
+  document.getElementById('lme-form').addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter' || e.target.tagName === 'TEXTAREA') return;
+    e.preventDefault();
+
+    const all = getFocusableRequired();
+    const cur = e.target;
+    const idx = all.indexOf(cur);
+
+    // Primeiro, procura o próximo campo em vermelho após o atual
+    let next = null;
+    for (let i = idx + 1; i < all.length; i++) {
+      if (all[i].classList.contains('req-empty')) {
+        next = all[i];
+        break;
+      }
+    }
+
+    // Se não encontrou vermelho depois, procura qualquer próximo campo
+    if (!next) {
+      for (let i = idx + 1; i < all.length; i++) {
+        next = all[i];
+        break;
+      }
+    }
+
+    if (next) {
+      next.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => next.focus(), 200);
+    }
+  });
+
+  // Clique/tab nos radios também navega para o próximo campo vermelho
+  document.querySelectorAll('#lme-form input[type=radio]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      const all = getFocusableRequired();
+      // Após 100ms (tempo do handler do radio atualizar estado), vai para próximo vermelho
+      setTimeout(() => {
+        const empties = all.filter(el => el.classList.contains('req-empty') && !el.disabled && el.offsetParent !== null);
+        if (empties.length > 0) {
+          empties[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => empties[0].focus && empties[0].focus(), 200);
+        }
+      }, 150);
+    });
+  });
+}
+
+/* ── Contador de campos obrigatórios ── */
+function updateCounter() {
+  const count = getEmptyRequired().length;
+  const bar = document.getElementById('req-counter');
+  if (!bar) return;
+  if (count === 0) {
+    bar.textContent = '✅ Todos os campos obrigatórios preenchidos! Você já pode exportar o PDF.';
+    bar.style.background = '#1e8449';
+  } else {
+    bar.textContent = '⚠️ ' + count + ' campo(s) obrigatório(s) ainda em vermelho.';
+    bar.style.background = '#922b21';
+  }
+}
+
+/* Sobrescreve chk, chkTA, chkRG para chamar updateCounter ── */
+const _origChk = chk;
+function chk(el) {
+  if(!el.value||el.value.trim()==='') el.classList.add('req-empty');
+  else el.classList.remove('req-empty');
+  updateCounter();
+}
+const _origChkTA = chkTA;
+function chkTA(el) {
+  if(!el.value||el.value.trim()==='') el.classList.add('req-empty');
+  else el.classList.remove('req-empty');
+  updateCounter();
+}
+const _origChkRG = chkRG;
+function chkRG(id) {
+  const grp=document.getElementById(id);
+  if(!grp) return;
+  const checked=grp.querySelector('input[type=radio]:checked');
+  if(checked) grp.classList.remove('rg-err'); else grp.classList.add('rg-err');
+  updateCounter();
+}
+
 /* ── Boot ── */
 buildMed();
 initReq();
 initRGErr();
+setupStepNavigation();
+setTimeout(updateCounter, 100);
 </script>
+
+<!-- Modal de validação -->
+<div id="validation-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:8px;padding:28px 32px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.35);text-align:center;">
+    <div style="font-size:38px;margin-bottom:12px;">🚫</div>
+    <div style="font-size:14px;font-weight:bold;color:#922b21;margin-bottom:10px;">Formulário incompleto</div>
+    <div id="modal-msg" style="font-size:12px;color:#333;line-height:1.6;white-space:pre-line;margin-bottom:20px;"></div>
+    <button onclick="closeModal()" style="background:#1a5276;color:#fff;border:none;border-radius:4px;padding:9px 28px;font-size:13px;font-weight:bold;cursor:pointer;">Entendido — vou completar</button>
+  </div>
+</div>
+
+<!-- Barra de progresso de campos obrigatórios -->
+<div id="req-counter" style="position:fixed;bottom:0;left:0;width:100%;background:#922b21;color:#fff;text-align:center;padding:7px 0;font-size:12px;font-weight:bold;z-index:200;box-shadow:0 -2px 8px rgba(0,0,0,0.3);"></div>
+
 </body>
 </html>
