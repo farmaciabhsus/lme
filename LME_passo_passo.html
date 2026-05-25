@@ -11741,57 +11741,37 @@ function wizRender() {
     const rg = document.createElement('div');
     rg.className = 'wiz-radio-group';
     const cur = document.querySelector('input[name="preench"]:checked');
-    const curVal = cur ? cur.value : '';
     const cbOutro = document.getElementById('cb_outro');
     const outroChecked = cbOutro ? cbOutro.checked : false;
+    const curVal = outroChecked ? 'Outro' : (cur ? cur.value : '');
     const outroNomeVal = (document.getElementById('outro_nome') || {}).value || '';
-    const outroCpfVal = (document.getElementById('outro_cpf') || {}).value || '';
+    const outroCpfVal  = (document.getElementById('outro_cpf')  || {}).value || '';
 
-    [['Paciente','Paciente'],['Mae','Mãe do Paciente'],['Responsavel','Responsável (item 13)'],['Medico','Médico Solicitante']].forEach(([val,lbl]) => {
+    [['Paciente','Paciente'],['Mae','Mãe do Paciente'],['Responsavel','Responsável (item 13)'],['Medico','Médico Solicitante'],['Outro','Outro — informar nome']].forEach(([val,lbl]) => {
       const lb = document.createElement('label');
       if (curVal === val) lb.classList.add('wiz-selected');
       lb.innerHTML = `<input type="radio" name="wiz_preench" value="${val}"> ${lbl}`;
       lb.querySelector('input').addEventListener('change', function() {
-        document.querySelectorAll('#wiz-input-area .wiz-radio-group label').forEach(l=>l.classList.remove('wiz-selected'));
+        document.querySelectorAll('#wiz-input-area .wiz-radio-group label').forEach(l => l.classList.remove('wiz-selected'));
         lb.classList.add('wiz-selected');
-        // Desmarca "Outro" se selecionar outro radio
-        const oc = document.getElementById('wiz-outro-chk');
-        if (oc) { oc.checked = false; }
         const od = document.getElementById('wiz-outro-div');
-        if (od) od.style.display = 'none';
+        if (od) od.style.display = val === 'Outro' ? 'flex' : 'none';
+        if (val === 'Outro') setTimeout(() => { const ni = document.getElementById('wiz-outro-nome'); if(ni) ni.focus(); }, 80);
       });
       rg.appendChild(lb);
     });
-
-    // Opção "Outro" como checkbox
-    const outroLb = document.createElement('label');
-    outroLb.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 14px;border:2px solid #d5d8dc;border-radius:8px;cursor:pointer;font-size:13px;';
-    if (outroChecked) outroLb.style.borderColor = '#1a5276';
-    outroLb.innerHTML = `<input type="checkbox" id="wiz-outro-chk" style="width:16px;height:16px;accent-color:#1a5276;" ${outroChecked?'checked':''}> Outro — informar nome`;
-    outroLb.querySelector('input').addEventListener('change', function() {
-      const od = document.getElementById('wiz-outro-div');
-      od.style.display = this.checked ? 'block' : 'none';
-      outroLb.style.borderColor = this.checked ? '#1a5276' : '#d5d8dc';
-      if (this.checked) {
-        // Desmarca os radios
-        document.querySelectorAll('input[name="wiz_preench"]').forEach(r => r.checked = false);
-        document.querySelectorAll('#wiz-input-area .wiz-radio-group label').forEach(l => l.classList.remove('wiz-selected'));
-        setTimeout(() => { const ni = document.getElementById('wiz-outro-nome'); if(ni) ni.focus(); }, 80);
-      }
-    });
-    rg.appendChild(outroLb);
     area.appendChild(rg);
 
     // Campos extras de "Outro"
     const outroDiv = document.createElement('div');
     outroDiv.id = 'wiz-outro-div';
-    outroDiv.style.cssText = 'display:' + (outroChecked ? 'block' : 'none') + ';margin-top:10px;display:' + (outroChecked?'flex':'none') + ';flex-direction:column;gap:8px;';
+    outroDiv.style.cssText = 'display:' + (curVal === 'Outro' ? 'flex' : 'none') + ';flex-direction:column;gap:8px;margin-top:10px;';
     outroDiv.innerHTML = `
-      <div style="font-size:11px;color:#c0392b;font-weight:bold;">⚠️ Campo obrigatório ao marcar Outro</div>
+      <div style="font-size:11px;color:#c0392b;font-weight:bold;">⚠️ Obrigatório informar nome e CPF ao selecionar Outro</div>
       <input type="text" id="wiz-outro-nome" placeholder="Nome completo de quem preencheu *" value="${outroNomeVal}"
         style="padding:9px 12px;font-size:13px;border:2px solid #1a5276;border-radius:6px;width:100%;box-sizing:border-box;">
-      <input type="text" id="wiz-outro-cpf" placeholder="CPF (opcional)" value="${outroCpfVal}" maxlength="14"
-        style="padding:9px 12px;font-size:13px;border:2px solid #d5d8dc;border-radius:6px;width:100%;box-sizing:border-box;">
+      <input type="text" id="wiz-outro-cpf" placeholder="CPF de quem preencheu *" value="${outroCpfVal}" maxlength="14"
+        style="padding:9px 12px;font-size:13px;border:2px solid #1a5276;border-radius:6px;width:100%;box-sizing:border-box;">
     `;
     outroDiv.querySelector('#wiz-outro-nome').addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();wizNext();} });
     area.appendChild(outroDiv);
@@ -11996,19 +11976,19 @@ function wizGetValue(step) {
     const r = document.querySelector('input[name="wiz_preench"]:checked');
     const val = r ? r.value : '';
     if (!val) {
-      // Verifica se "Outro" está marcado
-      const outroChk = document.getElementById('wiz-outro-chk');
-      if (!outroChk || !outroChk.checked) {
-        document.getElementById('wiz-error').textContent = '⚠️ Selecione quem preencheu o formulário.'; return null;
-      }
+      document.getElementById('wiz-error').textContent = '⚠️ Selecione quem preencheu o formulário.'; return null;
     }
-    // Se "Outro" marcado, nome é obrigatório
-    const outroChk = document.getElementById('wiz-outro-chk');
-    if (outroChk && outroChk.checked) {
+    if (val === 'Outro') {
       const outroNome = document.getElementById('wiz-outro-nome');
       if (!outroNome || !outroNome.value.trim()) {
-        document.getElementById('wiz-error').textContent = '⚠️ Informe o nome de quem está preenchendo (campo obrigatório ao marcar Outro).';
+        document.getElementById('wiz-error').textContent = '⚠️ Informe o nome de quem está preenchendo (obrigatório ao marcar Outro).';
         outroNome && outroNome.focus();
+        return null;
+      }
+      const outroCpf = document.getElementById('wiz-outro-cpf');
+      if (!outroCpf || !outroCpf.value.trim()) {
+        document.getElementById('wiz-error').textContent = '⚠️ Informe o CPF de quem está preenchendo (obrigatório ao marcar Outro).';
+        outroCpf && outroCpf.focus();
         return null;
       }
       return 'Outro';
