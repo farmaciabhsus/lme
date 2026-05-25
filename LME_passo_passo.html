@@ -11074,7 +11074,7 @@ function updateCounter() {
   const bar = document.getElementById('req-counter');
   if (!bar) return;
   if (count === 0) {
-    bar.textContent = '✅ Todos os campos obrigatórios preenchidos! Você já pode exportar o PDF.';
+    bar.textContent = '✅ Campos preenchidos. Verifique se todos os dados estão corretos, se todos os campos foram preenchidos, se os medicamentos foram padronizados para o CID informado, e salve o PDF. Não se esqueça de assinar os campos "17. Assinatura e carimbo do médico" e "23. Assinatura do responsável pelo preenchimento".';
     bar.style.background = '#1e8449';
   } else {
     bar.textContent = '⚠️ Ainda resta(m) ' + count + ' campo(s) a preencher.';
@@ -11134,11 +11134,12 @@ setTimeout(updateCounter, 100);
 #wiz-overlay {
   position: fixed; top:0; left:0; width:100%; height:100%;
   background: linear-gradient(135deg, #1a3a5c 0%, #1a5276 60%, #154360 100%);
-  z-index: 5000; display:flex; flex-direction:column;
+  z-index: 5000; display:none; flex-direction:column;
   align-items:center; justify-content:center;
   font-family: Arial, sans-serif;
   transition: opacity .4s;
 }
+#wiz-overlay.wiz-open { display:flex; }
 #wiz-overlay.wiz-hidden { opacity:0; pointer-events:none; }
 
 #wiz-card {
@@ -11643,7 +11644,32 @@ function wizRender() {
       cidSel.innerHTML = '<option value="">— Selecione o Medicamento 1 primeiro —</option>';
     }
     cidWrap.appendChild(cidSel);
-    wrap.appendChild(cidWrap);
+    cidSel.addEventListener('change', function() {
+      const realCid2 = document.getElementById('cid_sel');
+      if (realCid2) { realCid2.value = this.value; updateDiag(); }
+      // Mostra diagnóstico no wizard
+      const selOpt = this.options[this.selectedIndex];
+      const diagVal = selOpt ? (selOpt.dataset.diag || '') : '';
+      let diagDiv = document.getElementById('wiz-diag-display');
+      if (!diagDiv) {
+        diagDiv = document.createElement('div');
+        diagDiv.id = 'wiz-diag-display';
+        diagDiv.style.cssText = 'margin-top:8px;padding:9px 12px;background:#eaf4fb;border-left:4px solid #1a5276;border-radius:0 6px 6px 0;font-size:12px;color:#1a3a5c;font-weight:bold;line-height:1.5;';
+        cidWrap.appendChild(diagDiv);
+      }
+      diagDiv.style.display = diagVal ? 'block' : 'none';
+      diagDiv.innerHTML = diagVal ? `<span style="font-size:10px;color:#5d6d7e;font-weight:normal;">10. Diagnóstico:</span><br>${diagVal}` : '';
+    });
+    // Mostra diagnóstico já selecionado ao abrir
+    const curCidOpt = cidSel.options[cidSel.selectedIndex];
+    const curDiag = curCidOpt ? (curCidOpt.dataset.diag || '') : '';
+    if (curDiag) {
+      const diagDiv = document.createElement('div');
+      diagDiv.id = 'wiz-diag-display';
+      diagDiv.style.cssText = 'margin-top:8px;padding:9px 12px;background:#eaf4fb;border-left:4px solid #1a5276;border-radius:0 6px 6px 0;font-size:12px;color:#1a3a5c;font-weight:bold;line-height:1.5;';
+      diagDiv.innerHTML = `<span style="font-size:10px;color:#5d6d7e;font-weight:normal;">10. Diagnóstico:</span><br>${curDiag}`;
+      cidWrap.appendChild(diagDiv);
+    }
 
     area.appendChild(wrap);
 
@@ -12062,7 +12088,7 @@ window.wizBack = wizBack;
 function wizFinish() {
   const overlay = document.getElementById('wiz-overlay');
   overlay.classList.add('wiz-hidden');
-  setTimeout(() => { overlay.style.display = 'none'; updateCounter(); }, 400);
+  setTimeout(() => { overlay.classList.remove('wiz-open', 'wiz-hidden'); updateCounter(); }, 400);
 }
 
 // Teclado global no overlay
@@ -12080,12 +12106,12 @@ document.querySelector('.tbr').insertAdjacentHTML('afterbegin',
 window.wizOpen = function() {
   currentStep = 0;
   const overlay = document.getElementById('wiz-overlay');
-  overlay.style.display = 'flex';
+  overlay.classList.add('wiz-open');
   overlay.classList.remove('wiz-hidden');
   wizRender();
 };
 
-// Inicia automaticamente
+// Pré-renderiza silenciosamente (overlay está oculto)
 wizRender();
 
 // Vincula botões via JS (garante funcionamento mesmo dentro de IIFE)
