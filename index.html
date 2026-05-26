@@ -421,10 +421,10 @@ textarea.req-empty{border-color:#9c0006 !important;background:#fce4e4 !important
     <summary class="lbl" style="margin-bottom:3px; list-style: none; outline: none;">18. Campos abaixo preenchidos por <span class="r">*</span>:</summary>
   </details>
   <div class="inl" id="rg_preench" style="gap:10px;">
-    <label><input type="radio" name="preench" value="Paciente" onchange="chkRG('rg_preench')"> Paciente</label>
-    <label><input type="radio" name="preench" value="Mae" onchange="chkRG('rg_preench')"> Mãe do Paciente</label>
-    <label><input type="radio" name="preench" value="Responsavel" onchange="chkRG('rg_preench')"> Responsável (Descrito no item 13)</label>
-    <label><input type="radio" name="preench" value="Medico" onchange="chkRG('rg_preench')"> Médico Solicitante</label>
+    <label><input type="radio" name="preench" value="Paciente" onchange="chkRG('rg_preench');onPreenchRadio()"> Paciente</label>
+    <label><input type="radio" name="preench" value="Mae" onchange="chkRG('rg_preench');onPreenchRadio()"> Mãe do Paciente</label>
+    <label><input type="radio" name="preench" value="Responsavel" onchange="chkRG('rg_preench');onPreenchRadio()"> Responsável (Descrito no item 13)</label>
+    <label><input type="radio" name="preench" value="Medico" onchange="chkRG('rg_preench');onPreenchRadio()"> Médico Solicitante</label>
   </div>
   <div class="inl" style="margin-top:5px;">
     <label><input type="checkbox" id="cb_outro" onchange="onOutro()"> Outro, informar nome:</label>
@@ -10858,11 +10858,25 @@ function onOutro() {
   const cb=document.getElementById('cb_outro');
   const n=document.getElementById('outro_nome');
   const c=document.getElementById('outro_cpf');
-  if(cb.checked) { n.disabled=false; n.classList.add('req-empty'); c.disabled=false; c.classList.add('req-empty'); }
-  else { n.disabled=true; n.value=''; n.classList.remove('req-empty'); c.disabled=true; c.value=''; c.classList.remove('req-empty'); }
+  if(cb.checked) {
+    n.disabled=false; n.classList.add('req-empty');
+    c.disabled=false; c.classList.add('req-empty');
+    // "Outro" selecionado: desmarcar rádios e limpar erro do grupo
+    document.querySelectorAll('input[name="preench"]').forEach(r=>r.checked=false);
+    document.getElementById('rg_preench').classList.remove('rg-err');
+  } else {
+    n.disabled=true; n.value=''; n.classList.remove('req-empty');
+    c.disabled=true; c.value=''; c.classList.remove('req-empty');
+    // Ao desmarcar "Outro", re-valida o grupo de rádios
+    chkRG('rg_preench');
+  }
 }
 
-/* ── Campo 19 – raça ── */
+/* Ao clicar em um rádio da pergunta 18, desmarca o checkbox "Outro" */
+function onPreenchRadio() {
+  const cb=document.getElementById('cb_outro');
+  if(cb && cb.checked) { cb.checked=false; onOutro(); }
+}
 function onRaca() {
   document.getElementById('rg_raca').classList.remove('rg-err');
   const sel=document.querySelector('input[name="raca"]:checked');
@@ -11828,10 +11842,15 @@ function wizRender() {
       <div style="font-size:11px;color:#c0392b;font-weight:bold;">⚠️ Obrigatório informar nome e CPF ao selecionar Outro</div>
       <input type="text" id="wiz-outro-nome" placeholder="Nome completo de quem preencheu *" value="${outroNomeVal}"
         style="padding:9px 12px;font-size:13px;border:2px solid #1a5276;border-radius:6px;width:100%;box-sizing:border-box;">
-      <input type="text" id="wiz-outro-cpf" placeholder="CPF de quem preencheu *" value="${outroCpfVal}" maxlength="14"
+      <input type="text" id="wiz-outro-cpf" placeholder="CPF de quem preencheu (XXX.XXX.XXX-XX) *" value="${outroCpfVal}" maxlength="14"
         style="padding:9px 12px;font-size:13px;border:2px solid #1a5276;border-radius:6px;width:100%;box-sizing:border-box;">
     `;
     outroDiv.querySelector('#wiz-outro-nome').addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();wizNext();} });
+    outroDiv.querySelector('#wiz-outro-cpf').addEventListener('input', function() {
+      let v=this.value.replace(/\D/g,'').slice(0,11);
+      v=v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+      this.value=v;
+    });
     area.appendChild(outroDiv);
 
   } else if (t === 'radio_raca') {
@@ -11967,7 +11986,7 @@ function wizApplyToForm(step, val) {
       const rn = document.getElementById('outro_nome');
       const rc = document.getElementById('outro_cpf');
       if (rn && wn) { rn.value = wn.value; chk(rn); }
-      if (rc && wc) { rc.value = wc.value; }
+      if (rc && wc) { rc.value = wc.value; chk(rc); }
       chkRG('rg_preench');
     } else {
       const rb = document.querySelector(`input[name="preench"][value="${val}"]`);
@@ -12046,6 +12065,11 @@ function wizGetValue(step) {
       const outroCpf = document.getElementById('wiz-outro-cpf');
       if (!outroCpf || !outroCpf.value.trim()) {
         document.getElementById('wiz-error').textContent = '⚠️ Informe o CPF de quem está preenchendo (obrigatório ao marcar Outro).';
+        outroCpf && outroCpf.focus();
+        return null;
+      }
+      if (!/^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(outroCpf.value.trim())) {
+        document.getElementById('wiz-error').textContent = '⚠️ CPF inválido. Informe no formato XXX.XXX.XXX-XX.';
         outroCpf && outroCpf.focus();
         return null;
       }
