@@ -11134,12 +11134,12 @@ setTimeout(updateCounter, 100);
 #wiz-overlay {
   position: fixed; top:0; left:0; width:100%; height:100%;
   background: linear-gradient(135deg, #1a3a5c 0%, #1a5276 60%, #154360 100%);
-  z-index: 5000; display:none; flex-direction:column;
+  z-index: 5000; display:none !important; flex-direction:column;
   align-items:center; justify-content:center;
   font-family: Arial, sans-serif;
   transition: opacity .4s;
 }
-#wiz-overlay.wiz-open { display:flex; }
+#wiz-overlay.wiz-open { display:flex !important; }
 #wiz-overlay.wiz-hidden { opacity:0; pointer-events:none; }
 
 #wiz-card {
@@ -11566,22 +11566,26 @@ function wizRender() {
       // Atualiza CID quando med1 muda
       if (i === 1) {
         sel.addEventListener('change', function() {
-          // Atualiza o select real e dispara updateCID para popular cid_sel
           const realEl = document.getElementById('med1');
           if (realEl) { realEl.value = this.value; onMedChg(1); }
-          // Repopula o select de CID no wizard
-          const cidWrap = document.getElementById('wiz-cid-wrap');
-          if (cidWrap) {
-            const realCid = document.getElementById('cid_sel');
-            const cidSel = cidWrap.querySelector('select');
-            if (cidSel && realCid) {
-              cidSel.innerHTML = Array.from(realCid.options).map(o => {
-                const d = o.dataset.diag ? ` data-diag="${o.dataset.diag}"` : '';
-                return `<option value="${o.value}"${d}>${o.text}</option>`;
-              }).join('');
-              cidSel.value = '';
+          // Aguarda onMedChg popular o cid_sel real, depois sincroniza o wizard
+          setTimeout(() => {
+            const cidWrap2 = document.getElementById('wiz-cid-wrap');
+            if (cidWrap2) {
+              const realCid2 = document.getElementById('cid_sel');
+              const cidSelWiz = cidWrap2.querySelector('select');
+              if (cidSelWiz && realCid2) {
+                cidSelWiz.innerHTML = Array.from(realCid2.options).map(o => {
+                  const d = o.dataset.diag ? ` data-diag="${o.dataset.diag}"` : '';
+                  return `<option value="${o.value}"${d}>${o.text}</option>`;
+                }).join('');
+                cidSelWiz.value = '';
+                // Limpa diagnóstico
+                const dd = document.getElementById('wiz-diag-display');
+                if (dd) dd.style.display = 'none';
+              }
             }
-          }
+          }, 100);
         });
       }
       inner.appendChild(sel);
@@ -11671,6 +11675,7 @@ function wizRender() {
       cidWrap.appendChild(diagDiv);
     }
 
+    wrap.appendChild(cidWrap);
     area.appendChild(wrap);
 
     // Função global para toggle de medicamentos opcionais
@@ -12111,8 +12116,8 @@ window.wizOpen = function() {
   wizRender();
 };
 
-// Pré-renderiza silenciosamente (overlay está oculto)
-wizRender();
+// Inicializa apenas após o DOM estar pronto
+document.addEventListener("DOMContentLoaded", function() { wizRender(); });
 
 // Vincula botões via JS (garante funcionamento mesmo dentro de IIFE)
 document.getElementById('wiz-btn-next').addEventListener('click', function() { wizNext(); });
