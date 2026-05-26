@@ -11566,9 +11566,11 @@ function wizRender() {
       // Atualiza CID quando med1 muda
       if (i === 1) {
         sel.addEventListener('change', function() {
-          const realEl = document.getElementById('med1');
-          if (realEl) { realEl.value = this.value; onMedChg(1); }
-          // wizPopulateCID é chamado pelo listener adicionado ao med1WizSel abaixo
+          var realEl = document.getElementById('med1');
+          if (realEl) { realEl.value = this.value; if(typeof onMedChg==='function') onMedChg(1); }
+          // Repopula CID — função exposta via wiz-cid-wrap dataset após setTimeout
+          var cidSelEl = document.getElementById('wiz-cid-sel');
+          if (cidSelEl && cidSelEl._wizPopulateCID) cidSelEl._wizPopulateCID(this.value, '');
         });
       }
       inner.appendChild(sel);
@@ -11609,7 +11611,7 @@ function wizRender() {
       wrap.appendChild(block);
     }
 
-    // CID-10 — populado direto do MED_CID (independe do estado do cid_sel real)
+    // CID-10 — construído direto do MED_CID, independente do DOM do formulário
     const cidWrap = document.createElement('div');
     cidWrap.id = 'wiz-cid-wrap';
     cidWrap.style.cssText = 'border:2px solid #1a5276;border-radius:8px;padding:12px 14px;background:#eaf4fb;';
@@ -11622,33 +11624,35 @@ function wizRender() {
     const cidSel = document.createElement('select');
     cidSel.id = 'wiz-cid-sel';
     cidSel.style.cssText = 'width:100%;padding:8px 10px;font-size:13px;border:2px solid #d5d8dc;border-radius:6px;';
+    cidSel.innerHTML = '<option value="">— Selecione o Medicamento 1 primeiro —</option>';
+    cidWrap.appendChild(cidSel);
 
-    // Função auxiliar: popula o select de CID a partir do MED_CID diretamente
+    const diagDiv = document.createElement('div');
+    diagDiv.id = 'wiz-diag-display';
+    diagDiv.style.cssText = 'display:none;margin-top:8px;padding:9px 12px;background:#fff;border-left:4px solid #1a5276;border-radius:0 6px 6px 0;font-size:12px;color:#1a3a5c;font-weight:bold;line-height:1.5;';
+    cidWrap.appendChild(diagDiv);
+
+    wrap.appendChild(cidWrap);
+    area.appendChild(wrap);
+
+    // Funções auxiliares — definidas APÓS append ao DOM
     function wizPopulateCID(medVal, selectedCid) {
       const cids = (typeof MED_CID !== 'undefined' && medVal) ? (MED_CID[medVal] || []) : [];
-      if (cids.length === 0) {
+      if (!medVal || cids.length === 0) {
         cidSel.innerHTML = '<option value="">— Selecione o Medicamento 1 primeiro —</option>';
       } else {
         cidSel.innerHTML = '<option value="">— Selecione o CID —</option>' +
-          cids.map(c => {
-            const sel = (c.cid === selectedCid) ? ' selected' : '';
-            return `<option value="${c.cid}" data-diag="${c.diag}"${sel}>${c.cid}</option>`;
+          cids.map(function(c) {
+            var sel = (c.cid === selectedCid) ? ' selected' : '';
+            return '<option value="' + c.cid + '" data-diag="' + c.diag + '"' + sel + '>' + c.cid + '</option>';
           }).join('');
       }
-      // Mostra diagnóstico do valor já selecionado
       wizShowDiag();
     }
 
     function wizShowDiag() {
-      const opt = cidSel.options[cidSel.selectedIndex];
-      const diagVal = opt ? (opt.dataset.diag || '') : '';
-      let diagDiv = document.getElementById('wiz-diag-display');
-      if (!diagDiv) {
-        diagDiv = document.createElement('div');
-        diagDiv.id = 'wiz-diag-display';
-        diagDiv.style.cssText = 'margin-top:8px;padding:9px 12px;background:#fff;border-left:4px solid #1a5276;border-radius:0 6px 6px 0;font-size:12px;color:#1a3a5c;font-weight:bold;line-height:1.5;';
-        cidWrap.appendChild(diagDiv);
-      }
+      var opt = cidSel.options[cidSel.selectedIndex];
+      var diagVal = (opt && opt.dataset && opt.dataset.diag) ? opt.dataset.diag : '';
       if (diagVal) {
         diagDiv.style.display = 'block';
         diagDiv.innerHTML = '<span style="font-size:10px;color:#5d6d7e;font-weight:normal;">10. Diagnóstico:</span><br>' + diagVal;
@@ -11658,39 +11662,41 @@ function wizRender() {
       }
     }
 
-    // Popula imediatamente com o med1 já selecionado (se houver)
-    const med1WizSel = document.getElementById('wiz-med-sel-1');
-    const med1InitVal = med1WizSel ? med1WizSel.value : '';
-    const cidInitVal  = (document.getElementById('cid_sel') || {}).value || '';
-    wizPopulateCID(med1InitVal, cidInitVal);
-
-    // Quando med1 do wizard muda, repopula o CID
-    if (med1WizSel) {
-      med1WizSel.addEventListener('change', function() {
-        wizPopulateCID(this.value, '');
-      });
-    }
-
-    // Ao escolher CID: sincroniza com o form real e mostra diagnóstico
+    // Listener no CID
     cidSel.addEventListener('change', function() {
-      const realCid = document.getElementById('cid_sel');
+      wizShowDiag();
+      // Sincroniza com o form real
+      var realCid = document.getElementById('cid_sel');
       if (realCid) {
-        // Garante que o cid_sel real tenha as opções corretas antes de setar valor
-        const med1Val = med1WizSel ? med1WizSel.value : '';
-        const cids = (typeof MED_CID !== 'undefined' && med1Val) ? (MED_CID[med1Val] || []) : [];
+        var med1Val = '';
+        var m1s = document.getElementById('wiz-med-sel-1');
+        if (m1s) med1Val = m1s.value;
+        var cids = (typeof MED_CID !== 'undefined' && med1Val) ? (MED_CID[med1Val] || []) : [];
         if (cids.length > 0) {
           realCid.innerHTML = '<option value="">— Selecione o CID —</option>' +
-            cids.map(c => `<option value="${c.cid}" data-diag="${c.diag}">${c.cid}</option>`).join('');
+            cids.map(function(c) { return '<option value="' + c.cid + '" data-diag="' + c.diag + '">' + c.cid + '</option>'; }).join('');
         }
         realCid.value = this.value;
-        updateDiag();
+        if (typeof updateDiag === 'function') updateDiag();
       }
-      wizShowDiag();
     });
 
-    cidWrap.appendChild(cidSel);
-    wrap.appendChild(cidWrap);
-    area.appendChild(wrap);
+    // Popula CID após DOM estar montado — usa setTimeout(0) para garantir
+    setTimeout(function() {
+      var m1s = document.getElementById('wiz-med-sel-1');
+      var med1Val = m1s ? m1s.value : '';
+      var cidInitVal = (document.getElementById('cid_sel') || {}).value || '';
+      wizPopulateCID(med1Val, cidInitVal);
+      // Expõe a função no elemento para acesso externo
+      cidSel._wizPopulateCID = wizPopulateCID;
+
+      // Listener no med1 do wizard para repopular CID ao trocar medicamento
+      if (m1s) {
+        m1s.addEventListener('change', function() {
+          wizPopulateCID(this.value, '');
+        });
+      }
+    }, 0);
 
     // Função global para toggle de medicamentos opcionais
     window.wizToggleMed = function(i) {
