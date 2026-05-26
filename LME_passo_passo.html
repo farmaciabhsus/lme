@@ -11568,24 +11568,7 @@ function wizRender() {
         sel.addEventListener('change', function() {
           const realEl = document.getElementById('med1');
           if (realEl) { realEl.value = this.value; onMedChg(1); }
-          // Aguarda onMedChg popular o cid_sel real, depois sincroniza o wizard
-          setTimeout(() => {
-            const cidWrap2 = document.getElementById('wiz-cid-wrap');
-            if (cidWrap2) {
-              const realCid2 = document.getElementById('cid_sel');
-              const cidSelWiz = cidWrap2.querySelector('select');
-              if (cidSelWiz && realCid2) {
-                cidSelWiz.innerHTML = Array.from(realCid2.options).map(o => {
-                  const d = o.dataset.diag ? ` data-diag="${o.dataset.diag}"` : '';
-                  return `<option value="${o.value}"${d}>${o.text}</option>`;
-                }).join('');
-                cidSelWiz.value = '';
-                // Limpa diagnóstico
-                const dd = document.getElementById('wiz-diag-display');
-                if (dd) dd.style.display = 'none';
-              }
-            }
-          }, 100);
+          // wizPopulateCID é chamado pelo listener adicionado ao med1WizSel abaixo
         });
       }
       inner.appendChild(sel);
@@ -11626,55 +11609,86 @@ function wizRender() {
       wrap.appendChild(block);
     }
 
-    // CID-10
+    // CID-10 — populado direto do MED_CID (independe do estado do cid_sel real)
     const cidWrap = document.createElement('div');
     cidWrap.id = 'wiz-cid-wrap';
     cidWrap.style.cssText = 'border:2px solid #1a5276;border-radius:8px;padding:12px 14px;background:#eaf4fb;';
+
     const cidLbl = document.createElement('div');
     cidLbl.style.cssText = 'font-size:12px;font-weight:bold;color:#1a5276;margin-bottom:8px;';
     cidLbl.textContent = '🔴 CID-10 (obrigatório — vinculado ao Medicamento 1)';
     cidWrap.appendChild(cidLbl);
+
     const cidSel = document.createElement('select');
     cidSel.id = 'wiz-cid-sel';
     cidSel.style.cssText = 'width:100%;padding:8px 10px;font-size:13px;border:2px solid #d5d8dc;border-radius:6px;';
-    const realCid = document.getElementById('cid_sel');
-    if (realCid) {
-      cidSel.innerHTML = Array.from(realCid.options).map(o => {
-        const d = o.dataset.diag ? ` data-diag="${o.dataset.diag}"` : '';
-        return `<option value="${o.value}"${d}>${o.text}</option>`;
-      }).join('');
-      cidSel.value = realCid.value || '';
-    } else {
-      cidSel.innerHTML = '<option value="">— Selecione o Medicamento 1 primeiro —</option>';
+
+    // Função auxiliar: popula o select de CID a partir do MED_CID diretamente
+    function wizPopulateCID(medVal, selectedCid) {
+      const cids = (typeof MED_CID !== 'undefined' && medVal) ? (MED_CID[medVal] || []) : [];
+      if (cids.length === 0) {
+        cidSel.innerHTML = '<option value="">— Selecione o Medicamento 1 primeiro —</option>';
+      } else {
+        cidSel.innerHTML = '<option value="">— Selecione o CID —</option>' +
+          cids.map(c => {
+            const sel = (c.cid === selectedCid) ? ' selected' : '';
+            return `<option value="${c.cid}" data-diag="${c.diag}"${sel}>${c.cid}</option>`;
+          }).join('');
+      }
+      // Mostra diagnóstico do valor já selecionado
+      wizShowDiag();
     }
-    cidWrap.appendChild(cidSel);
-    cidSel.addEventListener('change', function() {
-      const realCid2 = document.getElementById('cid_sel');
-      if (realCid2) { realCid2.value = this.value; updateDiag(); }
-      // Mostra diagnóstico no wizard
-      const selOpt = this.options[this.selectedIndex];
-      const diagVal = selOpt ? (selOpt.dataset.diag || '') : '';
+
+    function wizShowDiag() {
+      const opt = cidSel.options[cidSel.selectedIndex];
+      const diagVal = opt ? (opt.dataset.diag || '') : '';
       let diagDiv = document.getElementById('wiz-diag-display');
       if (!diagDiv) {
         diagDiv = document.createElement('div');
         diagDiv.id = 'wiz-diag-display';
-        diagDiv.style.cssText = 'margin-top:8px;padding:9px 12px;background:#eaf4fb;border-left:4px solid #1a5276;border-radius:0 6px 6px 0;font-size:12px;color:#1a3a5c;font-weight:bold;line-height:1.5;';
+        diagDiv.style.cssText = 'margin-top:8px;padding:9px 12px;background:#fff;border-left:4px solid #1a5276;border-radius:0 6px 6px 0;font-size:12px;color:#1a3a5c;font-weight:bold;line-height:1.5;';
         cidWrap.appendChild(diagDiv);
       }
-      diagDiv.style.display = diagVal ? 'block' : 'none';
-      diagDiv.innerHTML = diagVal ? `<span style="font-size:10px;color:#5d6d7e;font-weight:normal;">10. Diagnóstico:</span><br>${diagVal}` : '';
-    });
-    // Mostra diagnóstico já selecionado ao abrir
-    const curCidOpt = cidSel.options[cidSel.selectedIndex];
-    const curDiag = curCidOpt ? (curCidOpt.dataset.diag || '') : '';
-    if (curDiag) {
-      const diagDiv = document.createElement('div');
-      diagDiv.id = 'wiz-diag-display';
-      diagDiv.style.cssText = 'margin-top:8px;padding:9px 12px;background:#eaf4fb;border-left:4px solid #1a5276;border-radius:0 6px 6px 0;font-size:12px;color:#1a3a5c;font-weight:bold;line-height:1.5;';
-      diagDiv.innerHTML = `<span style="font-size:10px;color:#5d6d7e;font-weight:normal;">10. Diagnóstico:</span><br>${curDiag}`;
-      cidWrap.appendChild(diagDiv);
+      if (diagVal) {
+        diagDiv.style.display = 'block';
+        diagDiv.innerHTML = '<span style="font-size:10px;color:#5d6d7e;font-weight:normal;">10. Diagnóstico:</span><br>' + diagVal;
+      } else {
+        diagDiv.style.display = 'none';
+        diagDiv.innerHTML = '';
+      }
     }
 
+    // Popula imediatamente com o med1 já selecionado (se houver)
+    const med1WizSel = document.getElementById('wiz-med-sel-1');
+    const med1InitVal = med1WizSel ? med1WizSel.value : '';
+    const cidInitVal  = (document.getElementById('cid_sel') || {}).value || '';
+    wizPopulateCID(med1InitVal, cidInitVal);
+
+    // Quando med1 do wizard muda, repopula o CID
+    if (med1WizSel) {
+      med1WizSel.addEventListener('change', function() {
+        wizPopulateCID(this.value, '');
+      });
+    }
+
+    // Ao escolher CID: sincroniza com o form real e mostra diagnóstico
+    cidSel.addEventListener('change', function() {
+      const realCid = document.getElementById('cid_sel');
+      if (realCid) {
+        // Garante que o cid_sel real tenha as opções corretas antes de setar valor
+        const med1Val = med1WizSel ? med1WizSel.value : '';
+        const cids = (typeof MED_CID !== 'undefined' && med1Val) ? (MED_CID[med1Val] || []) : [];
+        if (cids.length > 0) {
+          realCid.innerHTML = '<option value="">— Selecione o CID —</option>' +
+            cids.map(c => `<option value="${c.cid}" data-diag="${c.diag}">${c.cid}</option>`).join('');
+        }
+        realCid.value = this.value;
+        updateDiag();
+      }
+      wizShowDiag();
+    });
+
+    cidWrap.appendChild(cidSel);
     wrap.appendChild(cidWrap);
     area.appendChild(wrap);
 
