@@ -91,7 +91,7 @@ textarea.req-empty{border-color:#9c0006 !important;background:#fce4e4 !important
 
 /* ─── CAMPO 13 RESPONSÁVEL ─── */
 .resp-inp{width:100%;border:none;border-bottom:1px solid #aaa;outline:none;font-size:10px;font-family:Arial,sans-serif;margin-top:4px;display:block;background:transparent;}
-
+ 
 /* ─── FOOTER ─── */
 .reqnote{padding:3px 6px;font-size:10px;font-weight:bold;border-top:1px solid #000;}
 
