@@ -11338,12 +11338,29 @@ const STEPS = [
     validate: v => (v && parseInt(v) > 0) ? null : 'Informe uma altura válida.'
   },
   {
-    id: 'meds_block',
-    label: 'Campos 7, 8 e 9 — Medicamentos, Quantidades e CID',
-    question: 'Medicamentos solicitados, quantidades e CID-10',
-    hint: 'Obrigatório: pelo menos 1 medicamento e a quantidade do 1º mês. Você pode adicionar até 6 medicamentos com doses por mês.',
-    type: 'meds_block',
-    validate: v => v ? null : 'Preencha pelo menos o medicamento 1 e a quantidade do 1º mês.'
+    id: 'med1',
+    label: 'Campo 7 — Medicamento 1',
+    question: 'Selecione o medicamento principal (Medicamento 1)',
+    hint: 'Use obrigatoriamente a Denominação Comum Brasileira (DCB) com concentração.',
+    type: 'select_med1',
+    validate: v => v ? null : 'Selecione um medicamento.'
+  },
+  {
+    id: 'cid_sel',
+    label: 'Campo 9 — CID-10',
+    question: 'Selecione o CID-10 correspondente ao medicamento',
+    hint: 'O medicamento solicitado deve estar previsto no Protocolo Clínico (PCDT) para este CID.',
+    type: 'select_cid',
+    validate: v => v ? null : 'Selecione o CID-10.'
+  },
+  {
+    id: 'qty1',
+    label: 'Campo 8 — Quantidade (1º mês)',
+    question: 'Quantidade solicitada para o 1º mês',
+    hint: 'Informe apenas o número de cápsulas, comprimidos, seringas, frascos ou ampolas.',
+    type: 'number',
+    min: 1, step: 1,
+    validate: v => (v && parseInt(v) > 0) ? null : 'Informe uma quantidade válida.'
   },
   {
     id: 'anamnese',
@@ -11519,158 +11536,49 @@ function wizRender() {
     area.appendChild(hint2);
     setTimeout(() => ta.focus(), 80);
 
-  } else if (t === 'meds_block') {
-    // ── Bloco unificado: medicamentos (1-6), quantidades por mês (1-6), CID ──
-    const wrap = document.createElement('div');
-    wrap.id = 'wiz-meds-wrap';
-    wrap.style.cssText = 'display:flex;flex-direction:column;gap:14px;';
-
-    // Monta opções de medicamentos
-    const realMed1 = document.getElementById('med1');
-    const medOpts = realMed1 ? Array.from(realMed1.options).map(o => `<option value="${o.value}">${o.text}</option>`).join('') : '';
-
-    for (let i = 1; i <= 6; i++) {
-      const realMed = document.getElementById('med' + i);
-      const medVal = realMed ? realMed.value : '';
-
-      const block = document.createElement('div');
-      block.id = 'wiz-med-block-' + i;
-      block.style.cssText = 'border:2px solid ' + (i===1?'#1a5276':'#d5d8dc') + ';border-radius:8px;padding:12px 14px;background:' + (i===1?'#eaf4fb':'#fafafa') + ';';
-
-      const isRequired = (i === 1);
-      const label = document.createElement('div');
-      label.style.cssText = 'font-size:12px;font-weight:bold;color:' + (isRequired ? '#1a5276' : '#5d6d7e') + ';margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;';
-      label.innerHTML = `<span>${isRequired ? '🔴' : '⚪'} Medicamento ${i}${isRequired ? ' (obrigatório)' : ' (opcional)'}</span>` +
-        (i > 1 ? `<button type="button" id="wiz-tog-${i}" onclick="wizToggleMed(${i})" style="font-size:11px;background:${medVal?'#e74c3c':'#27ae60'};color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;">${medVal ? '− Remover' : '+ Adicionar'}</button>` : '');
-      block.appendChild(label);
-
-      // Container do conteúdo (colapsável para meds 2-6)
-      const inner = document.createElement('div');
-      inner.id = 'wiz-med-inner-' + i;
-      inner.style.display = (i === 1 || medVal) ? 'block' : 'none';
-
-      // Select do medicamento
-      const sel = document.createElement('select');
-      sel.id = 'wiz-med-sel-' + i;
-      sel.style.cssText = 'width:100%;padding:8px 10px;font-size:13px;border:2px solid #d5d8dc;border-radius:6px;margin-bottom:10px;';
-      sel.innerHTML = medOpts;
-      sel.value = medVal || '';
-      // Atualiza CID quando med1 muda
-      if (i === 1) {
-        sel.addEventListener('change', function() {
-          // Atualiza o select real e dispara updateCID para popular cid_sel
-          const realEl = document.getElementById('med1');
-          if (realEl) { realEl.value = this.value; onMedChg(1); }
-          // Repopula o select de CID no wizard
-          const cidWrap = document.getElementById('wiz-cid-wrap');
-          if (cidWrap) {
-            const realCid = document.getElementById('cid_sel');
-            const cidSel = cidWrap.querySelector('select');
-            if (cidSel && realCid) {
-              cidSel.innerHTML = Array.from(realCid.options).map(o => {
-                const d = o.dataset.diag ? ` data-diag="${o.dataset.diag}"` : '';
-                return `<option value="${o.value}"${d}>${o.text}</option>`;
-              }).join('');
-              cidSel.value = '';
-            }
-          }
-        });
-      }
-      inner.appendChild(sel);
-
-      // Quantidades por mês
-      const qLabel = document.createElement('div');
-      qLabel.style.cssText = 'font-size:11px;color:#5d6d7e;margin-bottom:6px;font-weight:bold;';
-      qLabel.textContent = 'Quantidade por mês (deixe 0 para meses não utilizados):';
-      inner.appendChild(qLabel);
-
-      const qGrid = document.createElement('div');
-      qGrid.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:6px;';
-
-      for (let m = 1; m <= 6; m++) {
-        // pega valor real da tabela: linha i, coluna mês m (3ª coluna em diante)
-        const realRow = document.querySelector('#mtbody tr:nth-child(' + i + ')');
-        const realQty = realRow ? (realRow.querySelectorAll('td.qty input')[m-1] || {}).value || '' : '';
-
-        const qWrap = document.createElement('div');
-        qWrap.style.cssText = 'display:flex;flex-direction:column;gap:2px;';
-        const qLbl = document.createElement('label');
-        qLbl.style.cssText = 'font-size:10px;color:#7f8c8d;';
-        qLbl.textContent = m + 'º mês' + (i===1 && m===1 ? ' *' : '');
-        const qInp = document.createElement('input');
-        qInp.type = 'number'; qInp.min = '0'; qInp.step = '1'; qInp.placeholder = '0';
-        qInp.id = 'wiz-qty-' + i + '-' + m;
-        qInp.value = realQty;
-        qInp.style.cssText = 'padding:6px 8px;font-size:13px;border:2px solid ' + (i===1&&m===1?'#1a5276':'#d5d8dc') + ';border-radius:6px;width:100%;box-sizing:border-box;';
-        qInp.addEventListener('input', function() {
-          this.value = this.value.replace(/[.,eE+\-]/g, '');
-        });
-        qWrap.appendChild(qLbl);
-        qWrap.appendChild(qInp);
-        qGrid.appendChild(qWrap);
-      }
-      inner.appendChild(qGrid);
-      block.appendChild(inner);
-      wrap.appendChild(block);
+  } else if (t === 'select_med1') {
+    const sel = document.createElement('select');
+    sel.id = 'wiz-inp';
+    // Copia as opções do select real
+    const realSel = document.getElementById('med1');
+    if (realSel) {
+      Array.from(realSel.options).forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o.value; opt.text = o.text;
+        sel.appendChild(opt);
+      });
+      sel.value = realSel.value || '';
     }
+    sel.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); wizNext(); }
+    });
+    area.appendChild(sel);
+    setTimeout(() => sel.focus(), 80);
 
-    // CID-10
-    const cidWrap = document.createElement('div');
-    cidWrap.id = 'wiz-cid-wrap';
-    cidWrap.style.cssText = 'border:2px solid #1a5276;border-radius:8px;padding:12px 14px;background:#eaf4fb;';
-    const cidLbl = document.createElement('div');
-    cidLbl.style.cssText = 'font-size:12px;font-weight:bold;color:#1a5276;margin-bottom:8px;';
-    cidLbl.textContent = '🔴 CID-10 (obrigatório — vinculado ao Medicamento 1)';
-    cidWrap.appendChild(cidLbl);
-    const cidSel = document.createElement('select');
-    cidSel.id = 'wiz-cid-sel';
-    cidSel.style.cssText = 'width:100%;padding:8px 10px;font-size:13px;border:2px solid #d5d8dc;border-radius:6px;';
-    const realCid = document.getElementById('cid_sel');
-    if (realCid) {
-      cidSel.innerHTML = Array.from(realCid.options).map(o => {
-        const d = o.dataset.diag ? ` data-diag="${o.dataset.diag}"` : '';
-        return `<option value="${o.value}"${d}>${o.text}</option>`;
-      }).join('');
-      cidSel.value = realCid.value || '';
-    } else {
-      cidSel.innerHTML = '<option value="">— Selecione o Medicamento 1 primeiro —</option>';
+  } else if (t === 'select_cid') {
+    // Depende do med1
+    const med1Val = document.getElementById('med1').value;
+    if (!med1Val) {
+      area.innerHTML = '<div style="color:#e74c3c;font-size:13px;">⚠️ Selecione o Medicamento 1 antes de escolher o CID.</div>';
+      return;
     }
-    cidWrap.appendChild(cidSel);
-    wrap.appendChild(cidWrap);
-
-    area.appendChild(wrap);
-
-    // Função global para toggle de medicamentos opcionais
-    window.wizToggleMed = function(i) {
-      const inner = document.getElementById('wiz-med-inner-' + i);
-      const btn = document.getElementById('wiz-tog-' + i);
-      const block = document.getElementById('wiz-med-block-' + i);
-      if (inner.style.display === 'none') {
-        inner.style.display = 'block';
-        btn.textContent = '− Remover';
-        btn.style.background = '#e74c3c';
-        block.style.borderColor = '#1a5276';
-        block.style.background = '#eaf4fb';
-      } else {
-        inner.style.display = 'none';
-        btn.textContent = '+ Adicionar';
-        btn.style.background = '#27ae60';
-        block.style.borderColor = '#d5d8dc';
-        block.style.background = '#fafafa';
-        // Zera os valores do form real para este medicamento
-        const sel = document.getElementById('wiz-med-sel-' + i);
-        if (sel) sel.value = '';
-        for (let m = 1; m <= 6; m++) {
-          const qi = document.getElementById('wiz-qty-' + i + '-' + m);
-          if (qi) qi.value = '';
-        }
-      }
-    };
-
-    setTimeout(() => {
-      const first = document.getElementById('wiz-med-sel-1');
-      if (first) first.focus();
-    }, 80);
+    const sel = document.createElement('select');
+    sel.id = 'wiz-inp';
+    const realSel = document.getElementById('cid_sel');
+    if (realSel) {
+      Array.from(realSel.options).forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o.value; opt.text = o.text;
+        if (o.dataset.diag) opt.dataset.diag = o.dataset.diag;
+        sel.appendChild(opt);
+      });
+      sel.value = realSel.value || '';
+    }
+    sel.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); wizNext(); }
+    });
+    area.appendChild(sel);
+    setTimeout(() => sel.focus(), 80);
 
   } else if (t === 'radio_trat') {
     const rg = document.createElement('div');
@@ -11838,35 +11746,12 @@ function wizApplyToForm(step, val) {
   } else if (t === 'textarea') {
     const el = document.getElementById(step.id);
     if (el) { el.value = val; chkTA(el); }
-  } else if (t === 'meds_block') {
-    // Aplica medicamentos 1-6 e quantidades no formulário real
-    for (let i = 1; i <= 6; i++) {
-      const wizSel = document.getElementById('wiz-med-sel-' + i);
-      const inner = document.getElementById('wiz-med-inner-' + i);
-      const isVisible = inner && inner.style.display !== 'none';
-      const realMed = document.getElementById('med' + i);
-      if (realMed) {
-        realMed.value = (wizSel && isVisible) ? wizSel.value : '';
-        if (i === 1) onMedChg(1);
-      }
-      // Quantidades: pega células da linha i da tabela
-      const realRow = document.querySelector('#mtbody tr:nth-child(' + i + ')');
-      if (realRow) {
-        const cells = realRow.querySelectorAll('td.qty input');
-        for (let m = 1; m <= 6; m++) {
-          const wizQty = document.getElementById('wiz-qty-' + i + '-' + m);
-          if (cells[m-1]) cells[m-1].value = (wizQty && isVisible) ? (wizQty.value || '0') : '0';
-        }
-      }
-    }
-    // CID
-    const wizCid = document.getElementById('wiz-cid-sel');
-    const realCid = document.getElementById('cid_sel');
-    if (wizCid && realCid) { realCid.value = wizCid.value; updateDiag(); }
-    // Re-valida med1 e qty1
-    chkMed1();
-    const qty1El = document.getElementById('qty1');
-    if (qty1El) chkQty1(qty1El);
+  } else if (t === 'select_med1') {
+    const el = document.getElementById('med1');
+    if (el) { el.value = val; onMedChg(1); }
+  } else if (t === 'select_cid') {
+    const el = document.getElementById('cid_sel');
+    if (el) { el.value = val; updateDiag(); }
   } else if (t === 'radio_trat') {
     const rb = document.querySelector(`input[name="trat"][value="${val}"]`);
     if (rb) { rb.checked = true; onTrat(); }
@@ -11896,21 +11781,9 @@ function wizApplyToForm(step, val) {
 /* Obtém o valor atual do input no wizard */
 function wizGetValue(step) {
   const t = step.type;
-  if (['text','email','date','number','textarea'].includes(t)) {
+  if (['text','email','date','number','textarea','select_med1','select_cid'].includes(t)) {
     const el = document.getElementById('wiz-inp');
     return el ? el.value : '';
-  } else if (t === 'meds_block') {
-    // Valida: med1 selecionado + qty mês 1 > 0 + CID selecionado
-    const med1Sel = document.getElementById('wiz-med-sel-1');
-    const qty1Inp = document.getElementById('wiz-qty-1-1');
-    const cidSel  = document.getElementById('wiz-cid-sel');
-    const med1Val = med1Sel ? med1Sel.value : '';
-    const qty1Val = qty1Inp ? parseInt(qty1Inp.value) : 0;
-    const cidVal  = cidSel ? cidSel.value : '';
-    if (!med1Val) { document.getElementById('wiz-error').textContent = '⚠️ Selecione o Medicamento 1.'; return null; }
-    if (!qty1Val || qty1Val < 1) { document.getElementById('wiz-error').textContent = '⚠️ Informe a quantidade do 1º mês para o Medicamento 1.'; return null; }
-    if (!cidVal) { document.getElementById('wiz-error').textContent = '⚠️ Selecione o CID-10.'; return null; }
-    return 'ok';
   } else if (t === 'radio_trat') {
     const r = document.querySelector('input[name="wiz_trat"]:checked');
     return r ? r.value : '';
@@ -11933,7 +11806,6 @@ function wizGetValue(step) {
 function wizNext() {
   const step = STEPS[currentStep];
   const val = wizGetValue(step);
-  if (val === null) return; // validation already set error message inline
   const err = step.validate(val);
   if (err) {
     document.getElementById('wiz-error').textContent = '⚠️ ' + err;
