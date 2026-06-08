@@ -396,7 +396,7 @@ textarea.req-empty{border-color:#9c0006 !important;background:#fce4e4 !important
         <details style="display: inline-block; cursor: pointer;" title="Preenchimento obrigatório com o número do cartão do profissional. O CPF não substitui este campo">
           <summary class="lbl" style="list-style: none; outline: none;">15. N° do CNS do médico solicitante <span class="r">*</span></summary>
         </details>
-        <input type="text" id="cns_med" maxlength="15" oninput="this.value=this.value.replace(/\D/g,''); chk(this);" onchange="chk(this)" placeholder=" " style="width:100%;border:none;border-bottom:1px solid #aaa;outline:none;font-size:10px;font-family:Arial,sans-serif;background:transparent;">
+        <input type="text" id="cns_med" maxlength="15" oninput="this.value=this.value.replace(/\D/g,''); chkCNS(this);" onchange="chkCNS(this)" placeholder=" " style="width:100%;border:none;border-bottom:1px solid #aaa;outline:none;font-size:10px;font-family:Arial,sans-serif;background:transparent;">
       </div>
       <div style="padding:3px 6px;min-height:32px;">
         <details style="display: inline-block; cursor: pointer;" title="Use o formato dd/mm/aaaa. O documento tem validade de 90 dias a partir desta data">
@@ -473,7 +473,7 @@ textarea.req-empty{border-color:#9c0006 !important;background:#fce4e4 !important
       <label><input type="radio" name="doc_tipo" value="CPF" onchange="onDocTipo()"> CPF</label>
       <label><input type="radio" name="doc_tipo" value="CNS" onchange="onDocTipo()"> CNS</label>
     </div>
-    <input type="text" id="doc_num" placeholder=" " style="margin-top:4px;width:100%;border:none;border-bottom:1px solid #aaa;outline:none;font-size:10px;" maxlength="18" oninput="docInput(this);chk(this);" onchange="chk(this)">
+    <input type="text" id="doc_num" placeholder=" " style="margin-top:4px;width:100%;border:none;border-bottom:1px solid #aaa;outline:none;font-size:10px;" maxlength="15" oninput="docInput(this);" onchange="docInput(this);">
   </div>
   <div class="cell">
     <details style="display: inline-block; cursor: pointer;" title="Deve ser a assinatura da mesma pessoa identificada no campo ">
@@ -10874,11 +10874,23 @@ function onRaca() {
 /* ── Doc tipo ── */
 function onDocTipo() {
   document.getElementById('rg_doc').classList.remove('rg-err');
-  document.getElementById('doc_num').value='';
+  const el = document.getElementById('doc_num');
+  el.value='';
+  const t=document.querySelector('input[name="doc_tipo"]:checked');
+  if(t && t.value==='CPF'){ el.maxLength=14; el.placeholder='000.000.000-00'; }
+  else if(t && t.value==='CNS'){ el.maxLength=15; el.placeholder='000000000000000'; }
+  el.classList.add('req-empty');
 }
 function docInput(el) {
   const t=document.querySelector('input[name="doc_tipo"]:checked');
   if(t&&t.value==='CPF') maskCPF(el);
+  else if(t&&t.value==='CNS'){ el.value=el.value.replace(/\D/g,'').slice(0,15); chkCNS(el); }
+}
+function chkCNS(el) {
+  const d=el.value.replace(/\D/g,'');
+  if(d.length===15) el.classList.remove('req-empty');
+  else el.classList.add('req-empty');
+  if(typeof updateCounter==='function') updateCounter();
 }
 
 /* ── Masks ── */
@@ -10912,11 +10924,17 @@ function limpar() {
   updateCID();
   initReq();
   initRGErr();
+  // Re-preenche data_sol com hoje
+  (function(){
+    const ds=document.getElementById('data_sol');
+    if(ds){ const today=new Date(); const yy=today.getFullYear(); const mm=String(today.getMonth()+1).padStart(2,'0'); const dd=String(today.getDate()).padStart(2,'0'); ds.value=yy+'-'+mm+'-'+dd; ds.classList.remove('req-empty'); }
+  })();
+  updateCounter();
 }
 
 /* ── Init required highlights ── */
 function initReq() {
-  ['cnes','estabelecimento','nome_civil','peso','altura','nome_mae','nome_med','cns_med','data_sol','anamnese'].forEach(id=>{
+  ['cnes','estabelecimento','nome_civil','peso','altura','nome_mae','nome_med','cns_med','anamnese'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.classList.add('req-empty');
   });
@@ -11109,7 +11127,20 @@ buildMed();
 initReq();
 initRGErr();
 setupStepNavigation();
-setTimeout(updateCounter, 100);
+// updateCounter e pre-fill da data rodam após DOM completo (req-counter fica após este script)
+document.addEventListener('DOMContentLoaded', function() {
+  // Pre-fill data_sol com a data do sistema
+  const ds=document.getElementById('data_sol');
+  if(ds && !ds.value){
+    const today=new Date();
+    const yy=today.getFullYear();
+    const mm=String(today.getMonth()+1).padStart(2,'0');
+    const dd=String(today.getDate()).padStart(2,'0');
+    ds.value=yy+'-'+mm+'-'+dd;
+    ds.classList.remove('req-empty');
+  }
+  updateCounter();
+});
 </script>
 
 <!-- Modal de validação -->
@@ -11394,7 +11425,7 @@ const STEPS = [
     maxlength: 15,
     inputmode: 'numeric',
     filter: v => v.replace(/\D/g,'').slice(0,15),
-    validate: v => v.trim() ? null : 'Campo obrigatório.'
+    validate: v => { const d = v.replace(/\D/g,''); return d.length === 15 ? null : 'O CNS deve ter exatamente 15 dígitos.'; }
   },
   {
     id: 'data_sol',
@@ -11877,6 +11908,11 @@ function wizRender() {
         style="padding:9px 12px;font-size:13px;border:2px solid #1a5276;border-radius:6px;width:100%;box-sizing:border-box;">
     `;
     outroDiv.querySelector('#wiz-outro-nome').addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();wizNext();} });
+    const wcpfInp = outroDiv.querySelector('#wiz-outro-cpf');
+    if(wcpfInp){
+      wcpfInp.addEventListener('input', function(){ maskCPF(this); });
+      wcpfInp.addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();wizNext();} });
+    }
     area.appendChild(outroDiv);
 
   } else if (t === 'radio_raca') {
@@ -11926,7 +11962,7 @@ function wizRender() {
         const extra = document.getElementById('wiz-doc-num-div');
         if (extra) extra.classList.add('visible');
         const ei = document.getElementById('wiz-doc-num-inp');
-        if(ei){ ei.value=''; ei.placeholder = val==='CPF'?'000.000.000-00':'Número do CNS'; }
+        if(ei){ ei.value=''; ei.placeholder = val==='CPF'?'000.000.000-00':'000000000000000'; ei.maxLength = val==='CPF'?14:15; }
       });
       rg.appendChild(lb);
     });
@@ -11937,15 +11973,17 @@ function wizRender() {
     extraDiv.id = 'wiz-doc-num-div';
     const extraInp = document.createElement('input');
     extraInp.type='text'; extraInp.id='wiz-doc-num-inp';
-    extraInp.placeholder = curVal === 'CPF' ? '000.000.000-00' : 'Número do documento';
+    extraInp.placeholder = curVal === 'CPF' ? '000.000.000-00' : (curVal === 'CNS' ? '000000000000000' : 'Número do documento');
     extraInp.value = docNum;
-    extraInp.maxLength = 18;
+    extraInp.maxLength = curVal === 'CPF' ? 14 : 15;
     extraInp.addEventListener('input', function() {
       const tipo = document.querySelector('input[name="wiz_doc_tipo"]:checked');
       if (tipo && tipo.value === 'CPF') {
         let v = this.value.replace(/\D/g,'').slice(0,11);
         v=v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
         this.value=v;
+      } else if (tipo && tipo.value === 'CNS') {
+        this.value = this.value.replace(/\D/g,'').slice(0,15);
       }
     });
     extraInp.addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();wizNext();} });
@@ -12014,7 +12052,7 @@ function wizApplyToForm(step, val) {
       const rn = document.getElementById('outro_nome');
       const rc = document.getElementById('outro_cpf');
       if (rn && wn) { rn.value = wn.value; chk(rn); }
-      if (rc && wc) { rc.value = wc.value; }
+      if (rc && wc) { rc.value = wc.value; chk(rc); }
       // Remove rg-err do grupo de radios pois "Outro" é a seleção válida
       const rgEl = document.getElementById('rg_preench');
       if (rgEl) rgEl.classList.remove('rg-err');
@@ -12102,6 +12140,11 @@ function wizGetValue(step) {
         outroCpf && outroCpf.focus();
         return null;
       }
+      if (outroCpf.value.replace(/\D/g,'').length !== 11) {
+        document.getElementById('wiz-error').textContent = '⚠️ O CPF deve ter 11 dígitos no formato 000.000.000-00.';
+        outroCpf.focus();
+        return null;
+      }
       return 'Outro';
     }
     return val;
@@ -12126,6 +12169,11 @@ function wizGetValue(step) {
     if (!docNum || !docNum.value.trim()) {
       document.getElementById('wiz-error').textContent = '⚠️ Informe o número do documento (obrigatório para CPF ou CNS).';
       docNum && docNum.focus();
+      return null;
+    }
+    if (val === 'CNS' && docNum.value.replace(/\D/g,'').length !== 15) {
+      document.getElementById('wiz-error').textContent = '⚠️ O CNS deve ter exatamente 15 dígitos.';
+      docNum.focus();
       return null;
     }
     return val;
